@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+      <UserSecretsId>f6cd74c4-b6bf-46db-8702-92c374507f39</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AssetVault.Application\AssetVault.Application.csproj" />
+        <ProjectReference Include="..\AssetVault.Infrastructure\AssetVault.Infrastructure.csproj" />
+        <ProjectReference Include="..\AssetVault.Contracts\AssetVault.Contracts.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.*">
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+          <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Scalar.AspNetCore" Version="2.*" />
+    </ItemGroup>
+
+
+</Project>

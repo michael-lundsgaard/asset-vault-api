@@ -1,0 +1,18 @@
+{
+	"editor.formatOnSave": true,
+	"editor.rulers": [120],
+	"files.exclude": {
+		"**/bin": true,
+		"**/obj": true,
+		"**/.vs": true,
+		"**/*.user": true,
+		"**/*.suo": true,
+		"**/*.cache": true
+	},
+	"search.exclude": {
+		"**/bin": true,
+		"**/obj": true
+	},
+	"dotnet-test-explorer.testProjectPath": "tests/**/*.csproj",
+	"github.copilot.chat.codeGeneration.useInstructionFiles": true
+}

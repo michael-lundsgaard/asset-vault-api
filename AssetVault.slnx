@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AssetVault.API/AssetVault.API.csproj" />
+    <Project Path="src/AssetVault.Application/AssetVault.Application.csproj" />
+    <Project Path="src/AssetVault.Contracts/AssetVault.Contracts.csproj" />
+    <Project Path="src/AssetVault.Domain/AssetVault.Domain.csproj" />
+    <Project Path="src/AssetVault.Infrastructure/AssetVault.Infrastructure.csproj" />
+  </Folder>
+</Solution>
