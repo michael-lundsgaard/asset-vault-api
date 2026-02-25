@@ -15,7 +15,7 @@ namespace AssetVault.Application.Assets.Queries
             GetAssetByIdQuery request,
             CancellationToken cancellationToken)
         {
-            var asset = await assetRepository.GetByIdWithExpandAsync(
+            var asset = await assetRepository.GetByIdAsync(
                 request.Id,
                 request.Expand,
                 cancellationToken);

@@ -7,12 +7,34 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
     public class CollectionRepository(AppDbContext context) : ICollectionRepository
     {
         /// <inheritdoc/>
-        public async Task<Collection?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-            await context.Collections.FindAsync([id], cancellationToken);
+        public async Task<Collection?> GetByIdAsync(
+            Guid id,
+            CollectionExpand expand = CollectionExpand.None,
+            CancellationToken cancellationToken = default)
+        {
+            if (expand == CollectionExpand.None)
+                return await context.Collections.FindAsync([id], cancellationToken);
+
+            var query = context.Collections.AsQueryable();
+
+            if (expand.HasFlag(CollectionExpand.Assets))
+                query = query.Include(c => c.Assets);
+
+            return await query.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+        }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<Collection>> GetAllAsync(CancellationToken cancellationToken = default) =>
-            await context.Collections.ToListAsync(cancellationToken);
+        public async Task<IReadOnlyList<Collection>> GetAllAsync(
+            CollectionExpand expand = CollectionExpand.None,
+            CancellationToken cancellationToken = default)
+        {
+            var query = context.Collections.AsQueryable();
+
+            if (expand.HasFlag(CollectionExpand.Assets))
+                query = query.Include(c => c.Assets);
+
+            return await query.ToListAsync(cancellationToken);
+        }
 
         /// <inheritdoc/>
         public async Task AddAsync(Collection collection, CancellationToken cancellationToken = default) =>

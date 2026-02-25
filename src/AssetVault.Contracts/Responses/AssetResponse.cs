@@ -12,10 +12,10 @@ namespace AssetVault.Contracts.Responses
         DateTime CreatedAt)
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CollectionSummary? Collection { get; init; }  // omitted unless ?expand=collection
+        public CollectionSummary? Collection { get; init; } // omitted unless ?expand=collection
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<string>? Tags { get; init; }             // omitted unless ?expand=tags
+        public List<string>? Tags { get; init; } // omitted unless ?expand=tags
     }
 
     public record CollectionSummary(Guid Id, string Name);
@@ -27,7 +27,7 @@ namespace AssetVault.Contracts.Responses
         DateTime CreatedAt)
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<AssetResponse>? Assets { get; init; }    // omitted unless ?expand=assets
+        public List<AssetResponse>? Assets { get; init; } // omitted unless ?expand=assets
     }
 
     public record PresignedUploadResponse(

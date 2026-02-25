@@ -10,7 +10,7 @@ namespace AssetVault.Application.Assets.Commands
     {
         public async Task Handle(ConfirmUploadCommand request, CancellationToken cancellationToken)
         {
-            var asset = await assetRepository.GetByIdAsync(request.AssetId, cancellationToken)
+            var asset = await assetRepository.GetByIdAsync(request.AssetId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Asset {request.AssetId} not found.");
 
             asset.MarkAsUploaded();

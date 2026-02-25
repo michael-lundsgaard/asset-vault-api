@@ -7,15 +7,14 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
     public class AssetRepository(AppDbContext context) : IAssetRepository
     {
         /// <inheritdoc/>
-        public async Task<MediaAsset?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default) =>
-            await context.Assets.FindAsync([id], cancellationToken);
-
-        /// <inheritdoc/>
-        public async Task<MediaAsset?> GetByIdWithExpandAsync(
+        public async Task<MediaAsset?> GetByIdAsync(
             Guid id,
-            AssetExpand expand,
+            AssetExpand expand = AssetExpand.None,
             CancellationToken cancellationToken = default)
         {
+            if (expand == AssetExpand.None)
+                return await context.Assets.FindAsync([id], cancellationToken);
+
             var query = context.Assets.AsQueryable();
 
             if (expand.HasFlag(AssetExpand.Collection))
@@ -28,19 +27,9 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<MediaAsset>> GetAllAsync(CancellationToken cancellationToken = default) =>
-            await context.Assets.OrderBy(a => a.CreatedAt).ToListAsync(cancellationToken);
-
-        /// <inheritdoc/>
-        public async Task AddAsync(MediaAsset asset, CancellationToken cancellationToken = default) =>
-            await context.Assets.AddAsync(asset, cancellationToken);
-
-        /// <inheritdoc/>
-        public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
-            context.SaveChangesAsync(cancellationToken);
-
-        /// <inheritdoc/>
-        public async Task<IReadOnlyList<MediaAsset>> GetAllAsync(AssetExpand expand, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<MediaAsset>> GetAllAsync(
+            AssetExpand expand = AssetExpand.None,
+            CancellationToken cancellationToken = default)
         {
             var query = context.Assets.AsQueryable();
 
@@ -52,5 +41,13 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
 
             return await query.OrderBy(a => a.CreatedAt).ToListAsync(cancellationToken);
         }
+
+        /// <inheritdoc/>
+        public async Task AddAsync(MediaAsset asset, CancellationToken cancellationToken = default) =>
+            await context.Assets.AddAsync(asset, cancellationToken);
+
+        /// <inheritdoc/>
+        public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
+            context.SaveChangesAsync(cancellationToken);
     }
 }
