@@ -13,6 +13,21 @@ namespace AssetVault.API.Controllers
     public class AssetsController(ISender mediator) : ControllerBase
     {
         /// <summary>
+        /// Get all assets.
+        /// Supports ?expand=collection,tags to include related data.
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(List<AssetResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? expand,
+            CancellationToken cancellationToken)
+        {
+            var expandFlags = ExpandParser.Parse(expand);
+            var result = await mediator.Send(new GetAssetsQuery(expandFlags), cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Get an asset by ID.
         /// Supports ?expand=collection,tags to include related data.
         /// </summary>

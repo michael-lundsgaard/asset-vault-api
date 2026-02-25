@@ -1,62 +1,186 @@
 # Generate a Conventional Commit Message
 
-Inspect the staged changes (or all unstaged changes if nothing is staged) and write a commit message following the Conventional Commits 1.0 spec.
+Analyze the staged changes (or all unstaged changes if nothing is staged) and produce **one logical commit message** following Conventional Commits 1.0.
 
-## Format
+Your goal is to describe the **intent of the change**, not list every modification.
+
+---
+
+## Output Format
 
 ```
-<type>(<scope>): <description>
+<type>(<scope>): <short summary>
 
-[optional body]
+<body explaining motivation and behavior>
 
-[optional footer(s)]
+<footer(s) if needed>
 ```
 
-## Types
+Do not output markdown fences or commentary — only the commit message.
 
-| Type       | When to use                                                    |
-| ---------- | -------------------------------------------------------------- |
-| `feat`     | A new feature visible to consumers of the API                  |
-| `fix`      | A bug fix                                                      |
-| `refactor` | Code restructure with no behaviour change                      |
-| `perf`     | Performance improvement                                        |
-| `test`     | Adding or fixing tests only                                    |
-| `build`    | Changes to the build system or dependencies (`.csproj`, NuGet) |
-| `ci`       | CI/CD pipeline changes                                         |
-| `docs`     | Documentation only                                             |
-| `chore`    | Housekeeping — no production code change                       |
+---
 
-## Scopes (use the layer or feature area)
+## Core Principles (IMPORTANT)
 
-Examples: `assets`, `collections`, `tags`, `storage`, `persistence`, `api`, `contracts`, `domain`, `infra`
+1. **Think in features, not files**
+    - Multiple modified files often belong to one change.
+    - Produce a single cohesive description.
 
-## Rules
+2. **Always choose ONE primary purpose**
+    - If multiple unrelated changes exist, describe the dominant one
+      and treat others as supporting context.
+    - Never write multiple independent changes in the same commit message.
 
-- Description: imperative mood, lowercase, no trailing period, ≤72 chars
-- Body: explain _why_, not _what_ — wrap at 72 chars
-- Breaking changes: add `!` after type/scope **and** a `BREAKING CHANGE:` footer
-- Reference issues in the footer: `Closes #123`
+3. **Prioritize externally visible impact**
+    - API behavior
+    - data model behavior
+    - observable runtime behavior
+    - developer usage
+
+4. **De-emphasize mechanical refactors**
+   Mention them only if they support the feature:
+    - renames
+    - mapping extraction
+    - DTO reshaping
+    - repository plumbing
+    - formatting / nullability cleanup
+
+5. **Do NOT narrate the diff**
+   Avoid phrases like:
+    - “add file”
+    - “update class”
+    - “modify method”
+    - “change property”
+
+6. **The first line must answer:**
+    > What capability does this introduce or fix?
+
+---
+
+## Choosing the Type
+
+| Type       | Meaning                                                         |
+| ---------- | --------------------------------------------------------------- |
+| `feat`     | New capability or new API behavior                              |
+| `fix`      | Corrects incorrect behavior                                     |
+| `refactor` | Internal restructuring with identical runtime behavior          |
+| `perf`     | Performance improvement                                         |
+| `test`     | Tests only                                                      |
+| `build`    | Dependencies / build system                                     |
+| `ci`       | Pipeline changes                                                |
+| `docs`     | Documentation only                                              |
+| `chore`    | Tooling / config / structure without production behavior change |
+
+**Rule:**  
+If users of the API must read release notes → `feat` or `fix`  
+If only developers care → `refactor` or `chore`
+
+Prefer `feat` when a new endpoint, query capability, or response shape
+becomes available — even if most code changes are internal plumbing.
+
+---
+
+## Choosing the Scope
+
+Use the functional area, not the layer:
+
+Good:
+
+- `assets`
+- `collections`
+- `tags`
+- `storage`
+
+Avoid:
+
+- `controllers`
+- `handlers`
+- `dtos`
+- `repository`
+
+---
+
+## Subject Line Rules
+
+- imperative mood
+- lowercase
+- ≤72 chars
+- no trailing period
+- describe behavior, not implementation
+
+Good:
+
+```
+feat(assets): support expand for collection and tags
+```
+
+Bad:
+
+```
+feat(api): add GetAssetsQueryHandler and controller
+```
+
+---
+
+## Body Rules
+
+Explain **why the change exists** and clarify behavior.
+
+Include:
+
+- behavior details
+- constraints
+- compatibility notes
+
+Avoid:
+
+- listing files
+- repeating the subject
+- low-level implementation steps
+
+The body must add new information not present in the subject line.  
+If it only repeats the summary, omit the body entirely.
+
+Wrap at 72 characters.
+
+---
+
+## Breaking Changes
+
+If behavior changes incompatibly:
+
+```
+feat(api)!: rename asset url field to storageUrl
+
+BREAKING CHANGE: url field removed from responses
+```
+
+---
 
 ## Examples
 
+Good:
+
 ```
-feat(assets): add expand query param for collections and tags
+feat(assets): add listing endpoint with expand support
 
-fix(storage): handle missing bucket error with NotFoundException
-
-refactor(assets): extract GetByIdWithExpandAsync into repository
-
-test(assets): add unit tests for GetAssetByIdQueryHandler
-
-build: upgrade AWSSDK.S3 to 4.x
-
-feat(api)!: rename /assets/{id} response field url to storageUrl
-
-BREAKING CHANGE: consumers must update to use `storageUrl` instead of `url`
+Allows clients to include related collection and tag data via the
+expand query parameter. Ensures stable ordering and omits unused
+fields from responses when not expanded.
 ```
 
-## What to do
+Bad:
 
-1. Review the diff of the current changes in the repository.
-2. Determine the correct type and scope.
-3. Output **only** the commit message — no explanation, no markdown fences.
+```
+feat(assets): add query handler, controller, dto, mapping, repository
+```
+
+---
+
+## Final instruction
+
+Review the diff, infer the single primary intent, and write the
+cleanest commit message a human maintainer would write after
+refactoring the branch into one commit.
+
+Output only the commit message.

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace AssetVault.Contracts.Responses
 {
     public record AssetResponse(
@@ -7,10 +9,14 @@ namespace AssetVault.Contracts.Responses
         long SizeBytes,
         string SizeFormatted,
         string Status,
-        DateTime CreatedAt,
-        CollectionSummary? Collection = null,   // null unless ?expand=collection
-        List<string>? Tags = null               // null unless ?expand=tags
-    );
+        DateTime CreatedAt)
+    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public CollectionSummary? Collection { get; init; }  // omitted unless ?expand=collection
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<string>? Tags { get; init; }             // omitted unless ?expand=tags
+    }
 
     public record CollectionSummary(Guid Id, string Name);
 
@@ -18,9 +24,11 @@ namespace AssetVault.Contracts.Responses
         Guid Id,
         string Name,
         string? Description,
-        DateTime CreatedAt,
-        List<AssetResponse>? Assets = null      // null unless ?expand=assets
-    );
+        DateTime CreatedAt)
+    {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<AssetResponse>? Assets { get; init; }    // omitted unless ?expand=assets
+    }
 
     public record PresignedUploadResponse(
         Guid AssetId,

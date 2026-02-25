@@ -20,6 +20,11 @@ namespace AssetVault.Application.Common.Interfaces
         Task<IReadOnlyList<MediaAsset>> GetAllAsync(CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets all assets, including related entities based on the specified expand flags. Returns an empty list if none exist.
+        /// </summary>
+        Task<IReadOnlyList<MediaAsset>> GetAllAsync(AssetExpand expand, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Adds a new asset to the repository. The asset's ID should be generated before calling this method.
         /// </summary>
         Task AddAsync(MediaAsset asset, CancellationToken cancellationToken = default);
