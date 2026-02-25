@@ -1,6 +1,6 @@
 # Scaffold New CQRS Feature
 
-Scaffold a complete CQRS feature for MediaVault following the project conventions.
+Scaffold a complete CQRS feature for AssetVault following the project conventions.
 
 ## Input required from me:
 

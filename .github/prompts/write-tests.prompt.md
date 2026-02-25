@@ -17,12 +17,12 @@ Write comprehensive unit tests for the selected handler following MediaVault con
 public class [Handler]Tests
 {
     // Arrange mocks
-    private readonly I[Dependency] _dependency = Substitute.For<I[Dependency]>();
-    private readonly [Handler] _sut;
+    private readonly IDependency _dependency = Substitute.For<IDependency>();
+    private readonly HandlerClass _sut;
 
     public [Handler]Tests()
     {
-        _sut = new [Handler](_dependency);
+        _sut = new HandlerClass(_dependency);
     }
 
     [Fact]

@@ -1,6 +1,6 @@
 # Add ?expand= Support to a Query
 
-Add expand parameter support to an existing query following the MediaVault pattern.
+Add expand parameter support to an existing query following the AssetVault pattern.
 
 ## The Pattern
 
