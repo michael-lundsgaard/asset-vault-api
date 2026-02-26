@@ -8,6 +8,7 @@ namespace AssetVault.Infrastructure.Persistence
         public DbSet<MediaAsset> Assets => Set<MediaAsset>();
         public DbSet<Collection> Collections => Set<Collection>();
         public DbSet<Tag> Tags => Set<Tag>();
+        public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

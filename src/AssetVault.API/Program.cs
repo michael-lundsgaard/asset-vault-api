@@ -1,4 +1,5 @@
 using AssetVault.API.Extensions;
+using AssetVault.API.Middleware;
 using AssetVault.Application.Extensions;
 using AssetVault.Infrastructure.Extensions;
 
@@ -15,8 +16,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment()) app.UseApiDocs();
 
 app.UseHttpsRedirection();
+
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserProfileMiddleware>(); // Populates HttpContext.Items["UserProfile"] for downstream handlers
+
 app.MapControllers();
 app.Run();
 

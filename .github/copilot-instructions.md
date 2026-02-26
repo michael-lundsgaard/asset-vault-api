@@ -16,62 +16,115 @@ AssetVault.API            → Controllers (thin), middleware, DI wiring.
 AssetVault.Contracts      → Request/Response DTOs (public API surface).
 ```
 
+## Upload Flow (Presigned URL Pattern)
+
+Files never pass through the API server:
+
+1. `POST /api/assets/upload` → `InitiateUploadCommand` creates a `MediaAsset` (status: `Pending`) + calls `IStorageService.GenerateUploadUrlAsync` → returns presigned S3 URL
+2. Client uploads directly to MinIO/R2 via the presigned URL
+3. `PATCH /api/assets/{id}/confirm` → `ConfirmUploadCommand` calls `asset.MarkAsUploaded()` → status becomes `Active`
+
+## Auth & UserProfile Flow
+
+- Auth uses Supabase JWTs (standard `sub` + `email` claims)
+- `UserProfileMiddleware` runs after `UseAuthorization`, fires `GetOrCreateUserProfileCommand` per authenticated request, and stores the result in `HttpContext.Items["UserProfile"]`
+- `GetOrCreateUserProfileCommand` checks `IMemoryCache` first (key: `userprofile:{userId}`) before hitting the DB — do not remove the cache layer
+- Controllers access the profile via `HttpContext.GetRequiredUserProfile()` (throws if missing) or `GetUserProfile()` (returns null)
+- `ISender` is resolved from `context.RequestServices` inside the singleton middleware to avoid capturing a scoped service
+
 ## CQRS Conventions
 
-- Commands: `{Verb}{Entity}Command` + `{Verb}{Entity}CommandHandler` in same file
-- Queries: `Get{Entity}By{X}Query` + handler in same file
-- Commands go in `Application/{Entity}/Commands/`, queries in `Application/{Entity}/Queries/`
-- Handlers take interfaces (e.g. `IAssetRepository`), never `AppDbContext` directly
-- Return types from commands: result records. From queries: contract response records.
+- Command + Handler in the same file; same for Query + Handler
+- Commands: `Application/{Entity}/Commands/`, queries: `Application/{Entity}/Queries/`
+- Handlers use primary constructor injection with interfaces only — never `AppDbContext` directly
+- Queries return `AssetResponse?` (contract type); commands return a dedicated result record (not `Unit`)
+- Entity not found in a query → return `null` from the handler; controller returns `NotFound()`
+- Entity not found in a command → `throw new KeyNotFoundException($"{entity} {id} not found.")`
+- After any mutation: call `repository.SaveChangesAsync(cancellationToken)`
+- Domain events are raised inside entity methods (e.g. `asset.AddDomainEvent(...)`), never directly from handlers
+- Pipeline behaviors: `ValidationBehavior` (FluentValidation) + `LoggingBehavior` — registered in `ApplicationServiceExtensions`
 
 ## Expand Pattern
 
-The `?expand=collection,tags` query param is parsed into `[Flags] enum AssetExpand`.
+`[Flags] enum AssetExpand` is defined in `Application/Common/Interfaces/IAssetRepository.cs`.
 
-- Parsing happens in `ExpandParser` in the API layer
-- The expand flags are passed into the Query record
-- Repository `GetByIdWithExpandAsync` conditionally `.Include()`s based on flags
-- Response records have nullable fields for expandable data (null = not expanded)
+- `ExpandParser.Parse(string?)` in the API layer converts `?expand=collection,tags` into the flags enum
+- Flags are passed into the Query record and forwarded to `IAssetRepository.GetByIdAsync(id, expand, ct)`
+- Repository conditionally `.Include()`s navigations based on `expand.HasFlag(...)`
+- Mapping (`AssetMappings.ToResponse`) uses `expand.HasFlag(...)` to populate nullable response fields — `null` means "not expanded, don't show the field", not "entity missing"
+
+## Mapping Pattern
+
+No AutoMapper. Manual static extension methods in `Application/{Entity}/Mappings/{Entity}Mappings.cs`.
+
+```csharp
+// Example: src/AssetVault.Application/Assets/Mappings/AssetMappings.cs
+public static AssetResponse ToResponse(this MediaAsset asset, AssetExpand expand) => new(...) { ... };
+```
+
+## Domain Model
+
+- Entities use `private` setters + a `private` EF constructor + a `static Create(...)` factory method
+- Value Objects (`FileSize`, `StoragePath`) are record types with `private` constructor + `static Create()` factory
+- Domain Events: `{Entity}{PastTense}Event` raised in entity methods, dispatched by EF Core interceptor or `SaveChangesAsync` override
 
 ## Naming Conventions
 
 - Entities: PascalCase, no suffix (`MediaAsset`, `Collection`, `Tag`)
-- Value Objects: record types with private ctor + static `Create()` factory
-- Domain Events: `{Entity}{Past Tense}Event` (`AssetCreatedEvent`)
 - Interfaces: `I{Name}` (`IAssetRepository`, `IStorageService`)
 - EF Config: `{Entity}Configuration : IEntityTypeConfiguration<{Entity}>`
+- Domain Events: `{Entity}{PastTense}Event` (`AssetCreatedEvent`, `AssetUploadedEvent`)
 
 ## Key Libraries
 
 - **MediatR 12** — CQRS pipeline
 - **FluentValidation 11** — validation (registered via DI, runs in `ValidationBehavior`)
 - **EF Core 9 + Npgsql** — Supabase PostgreSQL
-- **AWSSDK.S3** — Cloudflare R2 (S3-compatible, `ForcePathStyle = true`, custom endpoint)
+- **AWSSDK.S3** — Cloudflare R2 in prod / MinIO locally (`ForcePathStyle = true`, custom `ServiceUrl`)
+- **IMemoryCache** — UserProfile cache (built-in .NET, no Redis needed locally)
 - **xUnit + FluentAssertions + NSubstitute** — unit tests
 - **Testcontainers** — integration tests
 - **NetArchTest** — architecture enforcement tests
-- **Scalar** — API docs (replaces Swagger UI)
+- **Scalar** — API docs at `/scalar/v1` (replaces Swagger UI)
 
-## Testing Rules
+## Local Dev Setup
 
-- Unit tests: test handlers in isolation, mock with NSubstitute, never use real DB
-- Integration tests: use `WebApplicationFactory<Program>`, spin up Postgres via Testcontainers
-- Architecture tests: use NetArchTest to enforce layer boundaries
-- Test method naming: `{Method}_Given{Condition}_Should{ExpectedOutcome}`
+```bash
+docker compose up -d           # Start MinIO (console: http://localhost:9001, minioadmin/minioadmin)
+cd src/AssetVault.API
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<supabase-connection-string>"
+dotnet user-secrets set "Storage:S3:ServiceUrl" "http://localhost:9000"
+dotnet user-secrets set "Storage:S3:AccessKeyId" "minioadmin"
+dotnet user-secrets set "Storage:S3:SecretAccessKey" "minioadmin"
+dotnet user-secrets set "Storage:S3:UseHttp" "true"
+# Migrations
+dotnet ef database update --project src/AssetVault.Infrastructure --startup-project src/AssetVault.API
+# Add a new migration
+dotnet ef migrations add {Name} --project src/AssetVault.Infrastructure --startup-project src/AssetVault.API
+```
+
+## Testing
+
+- Unit tests: test handlers with NSubstitute mocks; use a real `MemoryCache` instance (not mocked) when the handler depends on `IMemoryCache`
+- Test class constructor wires up `_sut`; fields are readonly with `Substitute.For<I...>()` inline
+- Test method naming: `Handle_Given{Condition}_Should{Outcome}`
+- Integration tests: `WebApplicationFactory<Program>` + Testcontainers Postgres
+- Architecture tests: NetArchTest enforces layer boundaries
 
 ## Code Style
 
 - Nullable reference types enabled everywhere
-- Primary constructors preferred for DI (e.g. `class Foo(IBar bar)`)
-- Records for DTOs, commands, queries, and value objects
-- `async/await` throughout, always pass `CancellationToken`
-- No `var` for non-obvious types; `var` fine for LINQ and obvious types
-- Keep controllers thin — dispatch to MediatR, return HTTP result
+- Primary constructors preferred for DI
+- Records for DTOs, commands, queries, value objects
+- `async/await` throughout — always pass and forward `CancellationToken`
+- `var` only for LINQ results or when the type is obvious from the RHS
+- Keep controllers thin: parse request → call `mediator.Send(...)` → return HTTP result
 
 ## What NOT to Do
 
-- Never inject `AppDbContext` directly into handlers — use `IAssetRepository`
-- Never put business logic in controllers
+- Never inject `AppDbContext` directly into handlers — use repository interfaces
+- Never put business logic in controllers or middleware
 - Never add Infrastructure references in Application or Domain
-- Never skip `CancellationToken` parameters on async methods
+- Never skip `CancellationToken` on async methods
 - Never use `DateTime.Now` — always `DateTime.UtcNow`
+- Never use `Moq` — project uses `NSubstitute`

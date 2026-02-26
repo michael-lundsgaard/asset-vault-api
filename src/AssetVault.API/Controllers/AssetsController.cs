@@ -24,8 +24,6 @@ namespace AssetVault.API.Controllers
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
-            var user = HttpContext.User;
-
             var expandFlags = ExpandParser.Parse(expand);
             var result = await mediator.Send(new GetAssetsQuery(expandFlags), cancellationToken);
             return Ok(result);

@@ -18,7 +18,8 @@ namespace AssetVault.Domain.Entities
         public Collection? Collection { get; private set; }
         public ICollection<Tag> Tags { get; private set; } = [];
 
-        private MediaAsset() { } // Required for EF Core and to enforce use of the static Create method
+        // Required for EF Core and to enforce use of the static Create method
+        private MediaAsset() { }
 
         public static MediaAsset Create(
             string fileName,

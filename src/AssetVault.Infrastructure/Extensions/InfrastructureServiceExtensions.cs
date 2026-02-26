@@ -21,6 +21,10 @@ namespace AssetVault.Infrastructure.Extensions
             // Repositories
             services.AddScoped<IAssetRepository, AssetRepository>();
             services.AddScoped<ICollectionRepository, CollectionRepository>();
+            services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+
+            // In-memory cache
+            services.AddMemoryCache();
 
             // Cloudflare R2 / MinIO (development) / S3 Storage
             services.Configure<S3StorageOptions>(configuration.GetSection("Storage:S3"));

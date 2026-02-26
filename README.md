@@ -74,6 +74,8 @@ API docs available at `http://localhost:{port}/scalar/v1`
 
 ### 5. Run tests
 
+> TO BE IMPLEMENTED
+
 ```bash
 dotnet test                                       # all tests
 dotnet test tests/AssetVault.UnitTests            # unit only
@@ -96,10 +98,12 @@ The API uses a presigned URL pattern — files go directly to storage, never thr
 ## Key API Endpoints
 
 ```
-POST   /api/assets/upload                        → Initiate upload
+GET    /api/assets                               → List all assets
+GET    /api/assets?expand=collection,tags        → List assets with related data
+GET    /api/assets/{id}                          → Get asset by ID
+GET    /api/assets/{id}?expand=collection,tags   → Get asset by ID with related data
+POST   /api/assets/upload                        → Initiate upload (returns presigned URL)
 PATCH  /api/assets/{id}/confirm                  → Confirm upload complete
-GET    /api/assets/{id}                          → Get asset
-GET    /api/assets/{id}?expand=collection,tags   → Get asset with related data
 ```
 
 ---
@@ -125,11 +129,12 @@ The project includes AI coding agent configuration:
 | File                                            | Purpose                                    |
 | ----------------------------------------------- | ------------------------------------------ |
 | `.github/copilot-instructions.md`               | Always-on project context for Copilot Chat |
-| `.vscode/prompts/scaffold-feature.prompt.md`    | Invoke via `#scaffold-feature` in chat     |
-| `.vscode/prompts/write-tests.prompt.md`         | Invoke via `#write-tests` in chat          |
-| `.vscode/prompts/add-expand.prompt.md`          | Invoke via `#add-expand` in chat           |
-| `.vscode/instructions/handlers.instructions.md` | Auto-activates on `*Handler.cs` files      |
-| `.vscode/instructions/tests.instructions.md`    | Auto-activates on `tests/**/*.cs` files    |
+| `.github/prompts/scaffold-feature.prompt.md`    | Invoke via `#scaffold-feature` in chat     |
+| `.github/prompts/write-tests.prompt.md`         | Invoke via `#write-tests` in chat          |
+| `.github/prompts/add-expand.prompt.md`          | Invoke via `#add-expand` in chat           |
+| `.github/prompts/conventional-commit.prompt.md` | Invoke via `#conventional-commit` in chat  |
+| `.github/instructions/handlers.instructions.md` | Auto-activates on `*Handler.cs` files      |
+| `.github/instructions/tests.instructions.md`    | Auto-activates on `tests/**/*.cs` files    |
 
 ### How to use prompts in Copilot Chat
 
