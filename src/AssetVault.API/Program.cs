@@ -1,42 +1,22 @@
-using AssetVault.Application.Common.Behaviour;
+using AssetVault.API.Extensions;
+using AssetVault.Application.Extensions;
 using AssetVault.Infrastructure.Extensions;
-using AssetVault.Infrastructure.Storage;
-using FluentValidation;
-using MediatR;
-using Microsoft.Extensions.Options;
-using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Application
-builder.Services.AddMediatR(cfg =>
-{
-    cfg.RegisterServicesFromAssembly(typeof(AssetVault.Application.AssemblyMarker).Assembly);
-    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
-    cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
-});
-builder.Services.AddValidatorsFromAssembly(typeof(AssetVault.Application.AssemblyMarker).Assembly);
-
-// Infrastructure
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-
-// API
+builder.Services.AddApiAuthentication(builder.Configuration);
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddApiDocs();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference(); // Scalar UI at /scalar/v1
-}
-
-var s3Options = app.Services.GetRequiredService<IOptions<S3StorageOptions>>().Value;
-Console.WriteLine($"UseHttp: {s3Options.UseHttp}");
-Console.WriteLine($"ServiceUrl: {s3Options.ServiceUrl}");
+if (app.Environment.IsDevelopment()) app.UseApiDocs();
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.Run();
 

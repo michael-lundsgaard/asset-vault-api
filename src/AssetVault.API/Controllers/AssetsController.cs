@@ -4,11 +4,13 @@ using AssetVault.Application.Assets.Queries;
 using AssetVault.Contracts.Requests;
 using AssetVault.Contracts.Responses;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AssetVault.API.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class AssetsController(ISender mediator) : ControllerBase
     {
@@ -22,6 +24,8 @@ namespace AssetVault.API.Controllers
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
+            var user = HttpContext.User;
+
             var expandFlags = ExpandParser.Parse(expand);
             var result = await mediator.Send(new GetAssetsQuery(expandFlags), cancellationToken);
             return Ok(result);
