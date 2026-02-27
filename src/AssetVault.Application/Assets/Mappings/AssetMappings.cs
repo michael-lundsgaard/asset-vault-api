@@ -9,18 +9,17 @@ namespace AssetVault.Application.Assets.Mappings
         public static AssetResponse ToResponse(this MediaAsset asset, AssetExpand expand) =>
             new(
                 asset.Id,
+                asset.OwnerId,
                 asset.FileName,
                 asset.ContentType,
                 asset.Size.Bytes,
                 asset.Size.ToString(),
                 asset.Status.ToString(),
-                asset.CreatedAt)
+                asset.CreatedAt,
+                asset.Tags)
             {
-                Collection = expand.HasFlag(AssetExpand.Collection) && asset.Collection is not null
-                    ? new CollectionSummary(asset.Collection.Id, asset.Collection.Name)
-                    : null,
-                Tags = expand.HasFlag(AssetExpand.Tags)
-                    ? [.. asset.Tags.Select(t => t.Name)]
+                Collections = expand.HasFlag(AssetExpand.Collections)
+                    ? [.. asset.Collections.Select(c => new CollectionSummary(c.Id, c.Name))]
                     : null
             };
     }

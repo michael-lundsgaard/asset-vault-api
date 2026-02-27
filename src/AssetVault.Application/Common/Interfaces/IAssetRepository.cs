@@ -10,6 +10,11 @@ namespace AssetVault.Application.Common.Interfaces
         Task<MediaAsset?> GetByIdAsync(Guid id, AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Gets all assets owned by a specific user, optionally including related entities. Returns an empty list if none exist.
+        /// </summary>
+        Task<IReadOnlyList<MediaAsset>> GetByOwnerAsync(Guid ownerId, AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Gets all assets, optionally including related entities. Returns an empty list if none exist.
         /// </summary>
         Task<IReadOnlyList<MediaAsset>> GetAllAsync(AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
@@ -33,8 +38,7 @@ namespace AssetVault.Application.Common.Interfaces
     public enum AssetExpand
     {
         None = 0,
-        Collection = 1,
-        Tags = 2,
-        All = Collection | Tags
+        Collections = 1,
+        All = Collections
     }
 }

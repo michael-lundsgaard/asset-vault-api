@@ -10,32 +10,30 @@ namespace AssetVault.Domain.Entities
         public string FileName { get; private set; } = default!;
         public string ContentType { get; private set; } = default!;
         public FileSize Size { get; private set; } = default!;
-        public StoragePath StoragePath { get; private set; } = default!;
+        public StoragePath? StoragePath { get; private set; }
         public AssetStatus Status { get; private set; }
-        public Guid? CollectionId { get; private set; }
+        public List<string> Tags { get; private set; } = [];
+        public Guid OwnerId { get; private set; }
 
         // Navigation
-        public Collection? Collection { get; private set; }
-        public ICollection<Tag> Tags { get; private set; } = [];
+        public UserProfile Owner { get; private set; } = default!;
+        public ICollection<Collection> Collections { get; private set; } = [];
 
-        // Required for EF Core and to enforce use of the static Create method
         private MediaAsset() { }
 
         public static MediaAsset Create(
             string fileName,
             string contentType,
             long sizeInBytes,
-            string storagePath,
-            Guid? collectionId = null)
+            Guid ownerId)
         {
             var asset = new MediaAsset
             {
                 FileName = fileName,
                 ContentType = contentType,
                 Size = FileSize.Create(sizeInBytes),
-                StoragePath = StoragePath.Create(storagePath),
                 Status = AssetStatus.Pending,
-                CollectionId = collectionId
+                OwnerId = ownerId
             };
 
             asset.AddDomainEvent(new AssetCreatedEvent(asset.Id, fileName));
@@ -55,10 +53,25 @@ namespace AssetVault.Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void AddTag(Tag tag)
+        public void AddTag(string tag)
         {
-            if (!Tags.Any(t => t.Name == tag.Name))
-                Tags.Add(tag);
+            var normalized = tag.ToLowerInvariant();
+            if (!Tags.Contains(normalized))
+                Tags.Add(normalized);
+        }
+
+        public void RemoveTag(string tag) => Tags.Remove(tag.ToLowerInvariant());
+
+        public void AddToCollection(Collection collection)
+        {
+            if (!Collections.Any(c => c.Id == collection.Id))
+                Collections.Add(collection);
+        }
+
+        public void RemoveFromCollection(Collection collection)
+        {
+            var existing = Collections.FirstOrDefault(c => c.Id == collection.Id);
+            if (existing is not null) Collections.Remove(existing);
         }
 
         public void SetStoragePath(string path)

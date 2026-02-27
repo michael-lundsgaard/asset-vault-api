@@ -3,8 +3,7 @@ namespace AssetVault.Contracts.Requests
     public record InitiateUploadRequest(
         string FileName,
         string ContentType,
-        long SizeInBytes,
-        Guid? CollectionId = null
+        long SizeInBytes
     );
 
     public record CreateCollectionRequest(

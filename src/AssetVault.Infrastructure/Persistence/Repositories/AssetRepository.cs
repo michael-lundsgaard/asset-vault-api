@@ -17,11 +17,8 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
 
             var query = context.Assets.AsQueryable();
 
-            if (expand.HasFlag(AssetExpand.Collection))
-                query = query.Include(a => a.Collection);
-
-            if (expand.HasFlag(AssetExpand.Tags))
-                query = query.Include(a => a.Tags);
+            if (expand.HasFlag(AssetExpand.Collections))
+                query = query.Include(a => a.Collections);
 
             return await query.FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
         }
@@ -33,11 +30,8 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
         {
             var query = context.Assets.AsQueryable();
 
-            if (expand.HasFlag(AssetExpand.Collection))
-                query = query.Include(a => a.Collection);
-
-            if (expand.HasFlag(AssetExpand.Tags))
-                query = query.Include(a => a.Tags);
+            if (expand.HasFlag(AssetExpand.Collections))
+                query = query.Include(a => a.Collections);
 
             return await query.OrderBy(a => a.CreatedAt).ToListAsync(cancellationToken);
         }
@@ -49,5 +43,22 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
             context.SaveChangesAsync(cancellationToken);
+
+        /// <inheritdoc/>
+        public async Task<IReadOnlyList<MediaAsset>> GetByOwnerAsync(
+            Guid ownerId,
+            AssetExpand expand = AssetExpand.None,
+            CancellationToken cancellationToken = default)
+        {
+            if (expand == AssetExpand.None)
+                return await context.Assets.Where(a => a.OwnerId == ownerId).ToListAsync(cancellationToken);
+
+            var query = context.Assets.AsQueryable();
+
+            if (expand.HasFlag(AssetExpand.Collections))
+                query = query.Include(a => a.Collections);
+
+            return await query.Where(a => a.OwnerId == ownerId).ToListAsync(cancellationToken);
+        }
     }
 }

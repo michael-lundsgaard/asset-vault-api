@@ -5,9 +5,9 @@ namespace AssetVault.Application.Common.Interfaces
     public interface IUserProfileRepository
     {
         /// <summary>
-        /// Gets a user profile by Supabase user ID. Returns null if not found.
+        /// Gets a user profile by ID (which is the Supabase auth UUID). Returns null if not found.
         /// </summary>
-        Task<UserProfile?> GetByUserIdAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<UserProfile?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Adds a new user profile to the repository.

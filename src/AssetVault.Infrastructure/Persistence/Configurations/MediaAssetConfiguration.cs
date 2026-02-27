@@ -15,26 +15,28 @@ namespace AssetVault.Infrastructure.Persistence.Configurations
             builder.Property(a => a.ContentType).HasMaxLength(128).IsRequired();
             builder.Property(a => a.Status).IsRequired();
 
-            // Value object: FileSize -> owned, stored as column
             builder.OwnsOne(a => a.Size, size =>
             {
                 size.Property(s => s.Bytes).HasColumnName("SizeBytes").IsRequired();
             });
 
-            // Value object: StoragePath -> owned, stored as column
             builder.OwnsOne(a => a.StoragePath, path =>
             {
                 path.Property(p => p.Value).HasColumnName("StoragePath").HasMaxLength(1024).IsRequired();
             });
 
-            builder.HasOne(a => a.Collection)
-                .WithMany(c => c.Assets)
-                .HasForeignKey(a => a.CollectionId)
-                .OnDelete(DeleteBehavior.SetNull);
+            builder.Property(a => a.Tags)
+                .HasColumnType("text[]")
+                .IsRequired();
 
-            builder.HasMany(a => a.Tags)
-                .WithMany(t => t.Assets)
-                .UsingEntity("AssetTags");
+            builder.HasOne(a => a.Owner)
+                .WithMany()
+                .HasForeignKey(a => a.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(a => a.Collections)
+                .WithMany(c => c.Assets)
+                .UsingEntity("AssetCollections");
 
             builder.ToTable("Assets");
         }

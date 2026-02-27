@@ -7,13 +7,11 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
     public class UserProfileRepository(AppDbContext context) : IUserProfileRepository
     {
         /// <inheritdoc/>
-        public async Task<UserProfile?> GetByUserIdAsync(
-            Guid userId,
+        public async Task<UserProfile?> GetByIdAsync(
+            Guid id,
             CancellationToken cancellationToken = default)
         {
-
-            return await context.UserProfiles
-                .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+            return await context.UserProfiles.FindAsync([id], cancellationToken);
         }
 
         /// <inheritdoc/>

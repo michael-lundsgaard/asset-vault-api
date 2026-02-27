@@ -16,7 +16,7 @@ namespace AssetVault.API.Controllers
     {
         /// <summary>
         /// Get all assets.
-        /// Supports ?expand=collection,tags to include related data.
+        /// Supports ?expand=collections to include related data.
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(List<AssetResponse>), StatusCodes.Status200OK)]
@@ -30,8 +30,24 @@ namespace AssetVault.API.Controllers
         }
 
         /// <summary>
+        /// Get all assets owned by a specific user.
+        /// Supports ?expand=collections to include related data.
+        /// </summary>
+        [HttpGet("owner/{ownerId:guid}")]
+        [ProducesResponseType(typeof(List<AssetResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetByOwner(
+            Guid ownerId,
+            [FromQuery] string? expand,
+            CancellationToken cancellationToken)
+        {
+            var expandFlags = ExpandParser.Parse(expand);
+            var result = await mediator.Send(new GetAssetsByOwnerQuery(ownerId, expandFlags), cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Get an asset by ID.
-        /// Supports ?expand=collection,tags to include related data.
+        /// Supports ?expand=collections to include related data.
         /// </summary>
         [HttpGet("{id:guid}")]
         [ProducesResponseType(typeof(AssetResponse), StatusCodes.Status200OK)]
@@ -57,12 +73,14 @@ namespace AssetVault.API.Controllers
             [FromBody] InitiateUploadRequest request,
             CancellationToken cancellationToken)
         {
+            var ownerId = HttpContext.GetRequiredUserProfile().Id;
+
             var result = await mediator.Send(
                 new InitiateUploadCommand(
                     request.FileName,
                     request.ContentType,
                     request.SizeInBytes,
-                    request.CollectionId),
+                    ownerId),
                 cancellationToken);
 
             return CreatedAtAction(

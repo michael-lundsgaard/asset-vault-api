@@ -8,7 +8,7 @@ namespace AssetVault.Application.Assets.Commands
         string FileName,
         string ContentType,
         long SizeInBytes,
-        Guid? CollectionId = null
+        Guid OwnerId
     ) : IRequest<InitiateUploadResult>;
 
     public record InitiateUploadResult(
@@ -30,8 +30,7 @@ namespace AssetVault.Application.Assets.Commands
                 request.FileName,
                 request.ContentType,
                 request.SizeInBytes,
-                string.Empty, // StoragePath will be set after upload completes
-                request.CollectionId);
+                request.OwnerId);
 
             var presigned = await storageService.GenerateUploadUrlAsync(
                 asset.Id,

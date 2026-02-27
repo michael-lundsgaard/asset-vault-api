@@ -4,18 +4,17 @@ namespace AssetVault.Contracts.Responses
 {
     public record AssetResponse(
         Guid Id,
+        Guid OwnerId,
         string FileName,
         string ContentType,
         long SizeBytes,
         string SizeFormatted,
         string Status,
-        DateTime CreatedAt)
+        DateTime CreatedAt,
+        List<string> Tags)
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public CollectionSummary? Collection { get; init; } // omitted unless ?expand=collection
-
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<string>? Tags { get; init; } // omitted unless ?expand=tags
+        public List<CollectionSummary>? Collections { get; init; } // omitted unless ?expand=collections
     }
 
     public record CollectionSummary(Guid Id, string Name);

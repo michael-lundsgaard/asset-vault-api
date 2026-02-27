@@ -31,7 +31,7 @@ namespace AssetVault.Application.UserProfiles.Commands
             if (cache.TryGetValue(cacheKey, out UserProfile? cached) && cached is not null)
                 return cached;
 
-            var profile = await userProfileRepository.GetByUserIdAsync(
+            var profile = await userProfileRepository.GetByIdAsync(
                 request.UserId, cancellationToken);
 
             if (profile is null)
