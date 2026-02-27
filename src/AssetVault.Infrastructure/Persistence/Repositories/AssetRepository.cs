@@ -45,20 +45,20 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
             context.SaveChangesAsync(cancellationToken);
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<MediaAsset>> GetByOwnerAsync(
-            Guid ownerId,
+        public async Task<IReadOnlyList<MediaAsset>> GetByUserAsync(
+            Guid userId,
             AssetExpand expand = AssetExpand.None,
             CancellationToken cancellationToken = default)
         {
             if (expand == AssetExpand.None)
-                return await context.Assets.Where(a => a.OwnerId == ownerId).ToListAsync(cancellationToken);
+                return await context.Assets.Where(a => a.UserId == userId).ToListAsync(cancellationToken);
 
             var query = context.Assets.AsQueryable();
 
             if (expand.HasFlag(AssetExpand.Collections))
                 query = query.Include(a => a.Collections);
 
-            return await query.Where(a => a.OwnerId == ownerId).ToListAsync(cancellationToken);
+            return await query.Where(a => a.UserId == userId).ToListAsync(cancellationToken);
         }
     }
 }

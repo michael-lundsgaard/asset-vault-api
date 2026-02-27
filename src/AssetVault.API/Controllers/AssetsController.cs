@@ -33,15 +33,15 @@ namespace AssetVault.API.Controllers
         /// Get all assets owned by a specific user.
         /// Supports ?expand=collections to include related data.
         /// </summary>
-        [HttpGet("owner/{ownerId:guid}")]
+        [HttpGet("owner/{userId:guid}")]
         [ProducesResponseType(typeof(List<AssetResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByOwner(
-            Guid ownerId,
+            Guid userId,
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
             var expandFlags = ExpandParser.Parse(expand);
-            var result = await mediator.Send(new GetAssetsByOwnerQuery(ownerId, expandFlags), cancellationToken);
+            var result = await mediator.Send(new GetAssetsByOwnerQuery(userId, expandFlags), cancellationToken);
             return Ok(result);
         }
 
@@ -59,7 +59,6 @@ namespace AssetVault.API.Controllers
         {
             var expandFlags = ExpandParser.Parse(expand);
             var result = await mediator.Send(new GetAssetByIdQuery(id, expandFlags), cancellationToken);
-
             return result is null ? NotFound() : Ok(result);
         }
 
@@ -73,14 +72,14 @@ namespace AssetVault.API.Controllers
             [FromBody] InitiateUploadRequest request,
             CancellationToken cancellationToken)
         {
-            var ownerId = HttpContext.GetRequiredUserProfile().Id;
+            var userId = HttpContext.GetRequiredUserProfile().Id;
 
             var result = await mediator.Send(
                 new InitiateUploadCommand(
+                    userId,
                     request.FileName,
                     request.ContentType,
-                    request.SizeInBytes,
-                    ownerId),
+                    request.SizeInBytes),
                 cancellationToken);
 
             return CreatedAtAction(
@@ -97,7 +96,9 @@ namespace AssetVault.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ConfirmUpload(Guid id, CancellationToken cancellationToken)
         {
-            await mediator.Send(new ConfirmUploadCommand(id), cancellationToken);
+            var userId = HttpContext.GetRequiredUserProfile().Id;
+
+            await mediator.Send(new ConfirmUploadCommand(userId, id), cancellationToken);
             return NoContent();
         }
     }

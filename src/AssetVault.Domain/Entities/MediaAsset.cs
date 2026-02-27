@@ -7,13 +7,13 @@ namespace AssetVault.Domain.Entities
 {
     public class MediaAsset : BaseEntity
     {
+        public Guid UserId { get; private set; }
         public string FileName { get; private set; } = default!;
         public string ContentType { get; private set; } = default!;
         public FileSize Size { get; private set; } = default!;
         public StoragePath? StoragePath { get; private set; }
         public AssetStatus Status { get; private set; }
         public List<string> Tags { get; private set; } = [];
-        public Guid OwnerId { get; private set; }
 
         // Navigation
         public UserProfile Owner { get; private set; } = default!;
@@ -22,18 +22,18 @@ namespace AssetVault.Domain.Entities
         private MediaAsset() { }
 
         public static MediaAsset Create(
+            Guid userId,
             string fileName,
             string contentType,
-            long sizeInBytes,
-            Guid ownerId)
+            long sizeInBytes)
         {
             var asset = new MediaAsset
             {
+                UserId = userId,
                 FileName = fileName,
                 ContentType = contentType,
                 Size = FileSize.Create(sizeInBytes),
                 Status = AssetStatus.Pending,
-                OwnerId = ownerId
             };
 
             asset.AddDomainEvent(new AssetCreatedEvent(asset.Id, fileName));

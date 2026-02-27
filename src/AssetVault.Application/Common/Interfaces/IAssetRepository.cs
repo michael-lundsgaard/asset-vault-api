@@ -12,7 +12,7 @@ namespace AssetVault.Application.Common.Interfaces
         /// <summary>
         /// Gets all assets owned by a specific user, optionally including related entities. Returns an empty list if none exist.
         /// </summary>
-        Task<IReadOnlyList<MediaAsset>> GetByOwnerAsync(Guid ownerId, AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<MediaAsset>> GetByUserAsync(Guid userId, AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets all assets, optionally including related entities. Returns an empty list if none exist.

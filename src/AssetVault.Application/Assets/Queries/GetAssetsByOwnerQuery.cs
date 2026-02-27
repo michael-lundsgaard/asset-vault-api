@@ -5,7 +5,7 @@ using MediatR;
 
 namespace AssetVault.Application.Assets.Queries
 {
-    public record GetAssetsByOwnerQuery(Guid OwnerId, AssetExpand Expand = AssetExpand.None)
+    public record GetAssetsByOwnerQuery(Guid UserId, AssetExpand Expand = AssetExpand.None)
         : IRequest<List<AssetResponse>>;
 
     public class GetAssetsByOwnerQueryHandler(IAssetRepository assetRepository)
@@ -15,8 +15,8 @@ namespace AssetVault.Application.Assets.Queries
             GetAssetsByOwnerQuery request,
             CancellationToken cancellationToken)
         {
-            var assets = await assetRepository.GetByOwnerAsync(
-                request.OwnerId,
+            var assets = await assetRepository.GetByUserAsync(
+                request.UserId,
                 request.Expand,
                 cancellationToken);
 

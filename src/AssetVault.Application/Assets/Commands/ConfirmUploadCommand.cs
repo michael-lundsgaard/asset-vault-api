@@ -3,7 +3,7 @@ using MediatR;
 
 namespace AssetVault.Application.Assets.Commands
 {
-    public record ConfirmUploadCommand(Guid AssetId) : IRequest;
+    public record ConfirmUploadCommand(Guid UserId, Guid AssetId) : IRequest;
 
     public class ConfirmUploadCommandHandler(IAssetRepository assetRepository)
         : IRequestHandler<ConfirmUploadCommand>
@@ -12,6 +12,11 @@ namespace AssetVault.Application.Assets.Commands
         {
             var asset = await assetRepository.GetByIdAsync(request.AssetId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Asset {request.AssetId} not found.");
+
+            if (asset.UserId != request.UserId)
+            {
+                throw new UnauthorizedAccessException("You do not have permission to modify this asset.");
+            }
 
             asset.MarkAsUploaded();
             await assetRepository.SaveChangesAsync(cancellationToken);

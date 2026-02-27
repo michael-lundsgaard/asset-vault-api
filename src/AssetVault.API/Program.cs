@@ -15,11 +15,16 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment()) app.UseApiDocs();
 
+// Global exception handling for consistent error responses
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<UserProfileMiddleware>(); // Populates HttpContext.Items["UserProfile"] for downstream handlers
+
+// Custom middleware to set the current user context for each request
+app.UseMiddleware<UserProfileMiddleware>();
 
 app.MapControllers();
 app.Run();

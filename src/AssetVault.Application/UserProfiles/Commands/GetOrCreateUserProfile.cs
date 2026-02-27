@@ -36,7 +36,7 @@ namespace AssetVault.Application.UserProfiles.Commands
 
             if (profile is null)
             {
-                profile = UserProfile.Create(request.UserId, request.Email, request.Email);
+                profile = UserProfile.Create(request.UserId, request.Email, request.Email.Split('@')[0]);
                 await userProfileRepository.AddAsync(profile, cancellationToken);
                 await userProfileRepository.SaveChangesAsync(cancellationToken);
             }

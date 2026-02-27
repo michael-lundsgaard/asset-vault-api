@@ -4,14 +4,24 @@ namespace AssetVault.Domain.Entities
 {
     public class Collection : BaseEntity
     {
+        public Guid UserId { get; private set; }
         public string Name { get; private set; } = default!;
         public string? Description { get; private set; }
         public ICollection<MediaAsset> Assets { get; private set; } = [];
 
-        // Required for EF Core and to enforce use of the static Create method
+        // Navigation
+        public UserProfile Owner { get; private set; } = default!;
+
         private Collection() { }
 
-        public static Collection Create(string name, string? description = null) =>
-            new() { Name = name, Description = description };
+        public static Collection Create(Guid userId, string name, string? description = null) =>
+            new() { UserId = userId, Name = name, Description = description };
+
+        public void Update(string name, string? description)
+        {
+            Name = name;
+            Description = description;
+            UpdatedAt = DateTime.UtcNow;
+        }
     }
 }

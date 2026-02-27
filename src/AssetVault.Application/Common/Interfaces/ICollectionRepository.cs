@@ -19,14 +19,22 @@ namespace AssetVault.Application.Common.Interfaces
         /// </summary>
         Task AddAsync(Collection collection, CancellationToken cancellationToken = default);
 
+        /// <summary>'
+        /// Updates an existing collection in the repository. The collection must already exist and have a valid ID.
+        /// </summary>
+        Task UpdateAsync(Collection collection, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Removes a collection from the repository. The collection must already exist and have a valid ID.
+        /// </summary>
+        Task DeleteAsync(Collection collection, CancellationToken cancellationToken = default);
+
         /// <summary>
         /// Persists any changes made to the collections in the repository. 
         /// This should be called after adding, updating, or deleting collections to save those changes to the database.
         /// </summary>
         Task SaveChangesAsync(CancellationToken cancellationToken = default);
     }
-
-    public record CollectionWithCount(Collection Collection, int AssetCount);
 
     /// <summary>
     /// Flags enum used to specify which related entities to include when retrieving a collection.

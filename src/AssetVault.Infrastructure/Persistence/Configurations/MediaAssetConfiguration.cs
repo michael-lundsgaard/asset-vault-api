@@ -22,7 +22,8 @@ namespace AssetVault.Infrastructure.Persistence.Configurations
 
             builder.OwnsOne(a => a.StoragePath, path =>
             {
-                path.Property(p => p.Value).HasColumnName("StoragePath").HasMaxLength(1024).IsRequired();
+                // Nullable during upload process, but should be required once upload is confirmed
+                path.Property(p => p.Value).HasColumnName("StoragePath").HasMaxLength(1024);
             });
 
             builder.Property(a => a.Tags)
@@ -31,8 +32,8 @@ namespace AssetVault.Infrastructure.Persistence.Configurations
 
             builder.HasOne(a => a.Owner)
                 .WithMany()
-                .HasForeignKey(a => a.OwnerId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(a => a.Collections)
                 .WithMany(c => c.Assets)

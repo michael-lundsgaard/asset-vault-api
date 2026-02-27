@@ -41,6 +41,20 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
             await context.Collections.AddAsync(collection, cancellationToken);
 
         /// <inheritdoc/>
+        public Task UpdateAsync(Collection collection, CancellationToken cancellationToken = default)
+        {
+            context.Collections.Update(collection);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        public Task DeleteAsync(Collection collection, CancellationToken cancellationToken = default)
+        {
+            context.Collections.Remove(collection);
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
         public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
             context.SaveChangesAsync(cancellationToken);
     }

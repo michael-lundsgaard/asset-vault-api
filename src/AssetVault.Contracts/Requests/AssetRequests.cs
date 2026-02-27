@@ -11,4 +11,9 @@ namespace AssetVault.Contracts.Requests
         string? Description = null
     );
 
+    public record UpdateCollectionRequest(
+        string Name,
+        string? Description = null
+    );
+
 }

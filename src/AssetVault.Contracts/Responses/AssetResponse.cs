@@ -4,7 +4,7 @@ namespace AssetVault.Contracts.Responses
 {
     public record AssetResponse(
         Guid Id,
-        Guid OwnerId,
+        Guid UserId,
         string FileName,
         string ContentType,
         long SizeBytes,
@@ -21,6 +21,7 @@ namespace AssetVault.Contracts.Responses
 
     public record CollectionResponse(
         Guid Id,
+        Guid UserId,
         string Name,
         string? Description,
         DateTime CreatedAt)

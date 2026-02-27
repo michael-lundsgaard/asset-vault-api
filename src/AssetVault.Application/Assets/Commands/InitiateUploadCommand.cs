@@ -5,10 +5,10 @@ using MediatR;
 namespace AssetVault.Application.Assets.Commands
 {
     public record InitiateUploadCommand(
+        Guid UserId,
         string FileName,
         string ContentType,
-        long SizeInBytes,
-        Guid OwnerId
+        long SizeInBytes
     ) : IRequest<InitiateUploadResult>;
 
     public record InitiateUploadResult(
@@ -27,10 +27,10 @@ namespace AssetVault.Application.Assets.Commands
             CancellationToken cancellationToken)
         {
             var asset = MediaAsset.Create(
+                request.UserId,
                 request.FileName,
                 request.ContentType,
-                request.SizeInBytes,
-                request.OwnerId);
+                request.SizeInBytes);
 
             var presigned = await storageService.GenerateUploadUrlAsync(
                 asset.Id,

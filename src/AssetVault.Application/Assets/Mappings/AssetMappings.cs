@@ -9,7 +9,7 @@ namespace AssetVault.Application.Assets.Mappings
         public static AssetResponse ToResponse(this MediaAsset asset, AssetExpand expand) =>
             new(
                 asset.Id,
-                asset.OwnerId,
+                asset.UserId,
                 asset.FileName,
                 asset.ContentType,
                 asset.Size.Bytes,

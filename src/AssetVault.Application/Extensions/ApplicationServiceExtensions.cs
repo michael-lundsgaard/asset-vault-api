@@ -16,8 +16,8 @@ namespace AssetVault.Application.Extensions
             services.AddMediatR(config =>
             {
                 config.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly);
-                config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
                 config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+                config.AddBehavior(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
             });
             services.AddValidatorsFromAssembly(typeof(AssemblyMarker).Assembly);
 
