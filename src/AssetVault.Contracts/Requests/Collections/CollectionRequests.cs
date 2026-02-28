@@ -1,9 +1,9 @@
 namespace AssetVault.Contracts.Requests.Collections
 {
     public record CreateCollectionRequest(
-     string Name,
-     string? Description = null
- );
+        string Name,
+        string? Description = null
+    );
 
     public record UpdateCollectionRequest(
         string Name,

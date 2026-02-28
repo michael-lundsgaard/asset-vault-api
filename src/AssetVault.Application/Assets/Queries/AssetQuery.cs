@@ -1,5 +1,6 @@
 using AssetVault.Application.Common.Interfaces;
 using AssetVault.Domain.Enums;
+using FluentValidation;
 
 namespace AssetVault.Application.Assets.Queries
 {
@@ -21,4 +22,13 @@ namespace AssetVault.Application.Assets.Queries
         AssetSortBy SortBy = AssetSortBy.CreatedAt,
         bool SortDescending = false,
         AssetExpand Expand = AssetExpand.None);
+
+    public class AssetQueryValidator : AbstractValidator<AssetQuery>
+    {
+        public AssetQueryValidator()
+        {
+            RuleFor(x => x.Page).GreaterThanOrEqualTo(1);
+            RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
+        }
+    }
 }

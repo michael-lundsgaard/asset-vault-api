@@ -1,12 +1,13 @@
 namespace AssetVault.Contracts.Responses.Common
 {
-    public class PaginatedResponse<T>
+    public record PaginatedResponse<T>
     {
-        public required IReadOnlyList<T> Items { get; set; }
-        public required int Total { get; set; }
-        public required int Page { get; set; }
-        public required int PageSize { get; set; }
+        public required IReadOnlyList<T> Items { get; init; }
+        public required int Total { get; init; }
+        public required int Page { get; init; }
+        public required int PageSize { get; init; }
         public bool HasNextPage => Page * PageSize < Total;
         public bool HasPreviousPage => Page > 1;
     }
 }
+
