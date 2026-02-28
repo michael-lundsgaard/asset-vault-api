@@ -1,8 +1,10 @@
 using AssetVault.API.Extensions;
 using AssetVault.Application.Collections.Commands;
 using AssetVault.Application.Collections.Queries;
-using AssetVault.Contracts.Requests;
-using AssetVault.Contracts.Responses;
+using AssetVault.Application.Common.Interfaces;
+using AssetVault.Contracts.Requests.Collections;
+using AssetVault.Contracts.Responses.Collections;
+using AssetVault.Contracts.Responses.Common;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,16 +18,34 @@ namespace AssetVault.API.Controllers
     {
         /// <summary>
         /// Get all collections.
-        /// Supports ?expand=assets to include related data.
+        /// Supports ?expand=assets and filter/sort params: search, sortBy, sortDescending, page, pageSize.
         /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(List<CollectionResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<CollectionResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll(
+            [FromQuery] GetCollectionsRequest request,
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
-            var expandFlags = ExpandParser.ParseCollectionExpand(expand);
-            var result = await mediator.Send(new GetCollectionsQuery(expandFlags), cancellationToken);
+            var query = BuildCollectionQuery(request, expand);
+            var result = await mediator.Send(new GetCollectionsQuery(query), cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get all collections owned by a specific user.
+        /// Supports ?expand=assets and filter/sort params: search, sortBy, sortDescending, page, pageSize.
+        /// </summary>
+        [HttpGet("owner/{userId:guid}")]
+        [ProducesResponseType(typeof(PaginatedResponse<CollectionResponse>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetByOwner(
+            Guid userId,
+            [FromQuery] GetCollectionsRequest request,
+            [FromQuery] string? expand,
+            CancellationToken cancellationToken)
+        {
+            var query = BuildCollectionQuery(request, expand);
+            var result = await mediator.Send(new GetCollectionsByOwnerQuery(userId, query), cancellationToken);
             return Ok(result);
         }
 
@@ -41,7 +61,7 @@ namespace AssetVault.API.Controllers
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
-            var expandFlags = ExpandParser.ParseCollectionExpand(expand);
+            var expandFlags = ExpandParser.Parse<CollectionExpand>(expand);
             var result = await mediator.Send(new GetCollectionByIdQuery(id, expandFlags), cancellationToken);
 
             return result is null ? NotFound() : Ok(result);
@@ -131,6 +151,21 @@ namespace AssetVault.API.Controllers
 
             await mediator.Send(new RemoveAssetFromCollectionCommand(userId, id, assetId), cancellationToken);
             return NoContent();
+        }
+
+        private static CollectionQuery BuildCollectionQuery(GetCollectionsRequest request, string? expand)
+        {
+            CollectionSortBy sortBy = Enum.TryParse<CollectionSortBy>(request.SortBy, ignoreCase: true, out var parsedSortBy)
+                ? parsedSortBy
+                : CollectionSortBy.CreatedAt;
+
+            return new CollectionQuery(
+                request.Page,
+                request.PageSize,
+                request.Search,
+                sortBy,
+                request.SortDescending,
+                ExpandParser.Parse<CollectionExpand>(expand));
         }
     }
 }

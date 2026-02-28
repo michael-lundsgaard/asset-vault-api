@@ -1,3 +1,5 @@
+using AssetVault.Application.Assets.Queries;
+using AssetVault.Application.Common;
 using AssetVault.Domain.Entities;
 
 namespace AssetVault.Application.Common.Interfaces
@@ -10,14 +12,14 @@ namespace AssetVault.Application.Common.Interfaces
         Task<MediaAsset?> GetByIdAsync(Guid id, AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets all assets owned by a specific user, optionally including related entities. Returns an empty list if none exist.
+        /// Gets a filtered, sorted, and paged list of all assets.
         /// </summary>
-        Task<IReadOnlyList<MediaAsset>> GetByUserAsync(Guid userId, AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
+        Task<PagedResult<MediaAsset>> GetPagedAsync(AssetQuery query, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets all assets, optionally including related entities. Returns an empty list if none exist.
+        /// Gets a filtered, sorted, and paged list of assets owned by a specific user.
         /// </summary>
-        Task<IReadOnlyList<MediaAsset>> GetAllAsync(AssetExpand expand = AssetExpand.None, CancellationToken cancellationToken = default);
+        Task<PagedResult<MediaAsset>> GetPagedByUserAsync(Guid userId, AssetQuery query, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Adds a new asset to the repository. The asset's ID should be generated before calling this method.

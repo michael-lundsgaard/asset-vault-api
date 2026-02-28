@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
+using AssetVault.Contracts.Responses.Collections;
 
-namespace AssetVault.Contracts.Responses
+namespace AssetVault.Contracts.Responses.Assets
 {
     public record AssetResponse(
         Guid Id,
@@ -15,19 +16,6 @@ namespace AssetVault.Contracts.Responses
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<CollectionSummary>? Collections { get; init; } // omitted unless ?expand=collections
-    }
-
-    public record CollectionSummary(Guid Id, string Name);
-
-    public record CollectionResponse(
-        Guid Id,
-        Guid UserId,
-        string Name,
-        string? Description,
-        DateTime CreatedAt)
-    {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<AssetResponse>? Assets { get; init; } // omitted unless ?expand=assets
     }
 
     public record PresignedUploadResponse(

@@ -30,6 +30,20 @@ namespace AssetVault.API.Extensions
         {
             services.AddOpenApi(options =>
             {
+                options.AddOperationTransformer((operation, _, _) =>
+                {
+                    if (operation.Parameters is not null)
+                    {
+                        foreach (var parameter in operation.Parameters)
+                        {
+                            if (parameter.In == ParameterLocation.Query && parameter.Name.Length > 0)
+                                parameter.Name = char.ToLowerInvariant(parameter.Name[0]) + parameter.Name[1..];
+                        }
+                    }
+
+                    return Task.CompletedTask;
+                });
+
                 options.AddDocumentTransformer((document, _, _) =>
                 {
                     var securityScheme = new OpenApiSecurityScheme

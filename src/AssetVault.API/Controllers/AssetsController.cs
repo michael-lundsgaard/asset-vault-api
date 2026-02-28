@@ -1,8 +1,11 @@
 using AssetVault.API.Extensions;
 using AssetVault.Application.Assets.Commands;
 using AssetVault.Application.Assets.Queries;
-using AssetVault.Contracts.Requests;
-using AssetVault.Contracts.Responses;
+using AssetVault.Application.Common.Interfaces;
+using AssetVault.Contracts.Requests.Assets;
+using AssetVault.Contracts.Responses.Assets;
+using AssetVault.Contracts.Responses.Common;
+using AssetVault.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,32 +19,34 @@ namespace AssetVault.API.Controllers
     {
         /// <summary>
         /// Get all assets.
-        /// Supports ?expand=collections to include related data.
+        /// Supports ?expand=collections and filter/sort params: search, contentType, tags, status, sortBy, sortDescending, page, pageSize.
         /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(List<AssetResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<AssetResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll(
+            [FromQuery] GetAssetsRequest request,
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
-            var expandFlags = ExpandParser.Parse(expand);
-            var result = await mediator.Send(new GetAssetsQuery(expandFlags), cancellationToken);
+            var query = BuildAssetQuery(request, expand);
+            var result = await mediator.Send(new GetAssetsQuery(query), cancellationToken);
             return Ok(result);
         }
 
         /// <summary>
         /// Get all assets owned by a specific user.
-        /// Supports ?expand=collections to include related data.
+        /// Supports ?expand=collections and filter/sort params: search, contentType, tags, status, sortBy, sortDescending, page, pageSize.
         /// </summary>
         [HttpGet("owner/{userId:guid}")]
-        [ProducesResponseType(typeof(List<AssetResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaginatedResponse<AssetResponse>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetByOwner(
             Guid userId,
+            [FromQuery] GetAssetsRequest request,
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
-            var expandFlags = ExpandParser.Parse(expand);
-            var result = await mediator.Send(new GetAssetsByOwnerQuery(userId, expandFlags), cancellationToken);
+            var query = BuildAssetQuery(request, expand);
+            var result = await mediator.Send(new GetAssetsByOwnerQuery(userId, query), cancellationToken);
             return Ok(result);
         }
 
@@ -57,7 +62,7 @@ namespace AssetVault.API.Controllers
             [FromQuery] string? expand,
             CancellationToken cancellationToken)
         {
-            var expandFlags = ExpandParser.Parse(expand);
+            var expandFlags = ExpandParser.Parse<AssetExpand>(expand);
             var result = await mediator.Send(new GetAssetByIdQuery(id, expandFlags), cancellationToken);
             return result is null ? NotFound() : Ok(result);
         }
@@ -100,6 +105,28 @@ namespace AssetVault.API.Controllers
 
             await mediator.Send(new ConfirmUploadCommand(userId, id), cancellationToken);
             return NoContent();
+        }
+
+        private static AssetQuery BuildAssetQuery(GetAssetsRequest request, string? expand)
+        {
+            AssetStatus? status = Enum.TryParse<AssetStatus>(request.Status, ignoreCase: true, out var parsedStatus)
+                ? parsedStatus
+                : null;
+
+            AssetSortBy sortBy = Enum.TryParse<AssetSortBy>(request.SortBy, ignoreCase: true, out var parsedSortBy)
+                ? parsedSortBy
+                : AssetSortBy.CreatedAt;
+
+            return new AssetQuery(
+                request.Page,
+                request.PageSize,
+                request.Search,
+                request.ContentType,
+                request.Tags,
+                status,
+                sortBy,
+                request.SortDescending,
+                ExpandParser.Parse<AssetExpand>(expand));
         }
     }
 }

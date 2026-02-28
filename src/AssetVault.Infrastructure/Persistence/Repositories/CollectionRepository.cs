@@ -1,5 +1,8 @@
+using AssetVault.Application.Collections.Queries;
+using AssetVault.Application.Common;
 using AssetVault.Application.Common.Interfaces;
 using AssetVault.Domain.Entities;
+using AssetVault.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AssetVault.Infrastructure.Persistence.Repositories
@@ -24,16 +27,40 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<IReadOnlyList<Collection>> GetAllAsync(
-            CollectionExpand expand = CollectionExpand.None,
+        public async Task<PagedResult<Collection>> GetPagedAsync(
+            CollectionQuery query,
             CancellationToken cancellationToken = default)
         {
-            var query = context.Collections.AsQueryable();
+            var queryable = ApplyExpands(context.Collections.AsNoTracking(), query.Expand);
+            queryable = queryable.ApplyFilters(query);
 
-            if (expand.HasFlag(CollectionExpand.Assets))
-                query = query.Include(c => c.Assets);
+            var total = await queryable.CountAsync(cancellationToken);
 
-            return await query.ToListAsync(cancellationToken);
+            var items = await queryable
+                .ApplySorting(query)
+                .ApplyPaging(query)
+                .ToListAsync(cancellationToken);
+
+            return new PagedResult<Collection>(items, total, query.Page, query.PageSize);
+        }
+
+        /// <inheritdoc/>
+        public async Task<PagedResult<Collection>> GetPagedByUserAsync(
+            Guid userId,
+            CollectionQuery query,
+            CancellationToken cancellationToken = default)
+        {
+            var queryable = ApplyExpands(context.Collections.AsNoTracking().Where(c => c.UserId == userId), query.Expand);
+            queryable = queryable.ApplyFilters(query);
+
+            var total = await queryable.CountAsync(cancellationToken);
+
+            var items = await queryable
+                .ApplySorting(query)
+                .ApplyPaging(query)
+                .ToListAsync(cancellationToken);
+
+            return new PagedResult<Collection>(items, total, query.Page, query.PageSize);
         }
 
         /// <inheritdoc/>
@@ -57,5 +84,13 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
         /// <inheritdoc/>
         public Task SaveChangesAsync(CancellationToken cancellationToken = default) =>
             context.SaveChangesAsync(cancellationToken);
+
+        private static IQueryable<Collection> ApplyExpands(IQueryable<Collection> queryable, CollectionExpand expand)
+        {
+            if (expand.HasFlag(CollectionExpand.Assets))
+                queryable = queryable.Include(a => a.Assets);
+
+            return queryable;
+        }
     }
 }

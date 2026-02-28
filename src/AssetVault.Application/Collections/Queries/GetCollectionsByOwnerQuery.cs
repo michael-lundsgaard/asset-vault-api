@@ -7,25 +7,25 @@ using MediatR;
 
 namespace AssetVault.Application.Collections.Queries
 {
-    public record GetCollectionsQuery(CollectionQuery Query) : IRequest<PaginatedResponse<CollectionResponse>>;
+    public record GetCollectionsByOwnerQuery(Guid UserId, CollectionQuery Query) : IRequest<PaginatedResponse<CollectionResponse>>;
 
-    public class GetCollectionsQueryValidator : AbstractValidator<GetCollectionsQuery>
+    public class GetCollectionsByOwnerQueryValidator : AbstractValidator<GetCollectionsByOwnerQuery>
     {
-        public GetCollectionsQueryValidator()
+        public GetCollectionsByOwnerQueryValidator()
         {
             RuleFor(x => x.Query.Page).GreaterThanOrEqualTo(1);
             RuleFor(x => x.Query.PageSize).InclusiveBetween(1, 100);
         }
     }
 
-    public class GetCollectionsQueryHandler(ICollectionRepository collectionRepository)
-        : IRequestHandler<GetCollectionsQuery, PaginatedResponse<CollectionResponse>>
+    public class GetCollectionsByOwnerQueryHandler(ICollectionRepository collectionRepository)
+        : IRequestHandler<GetCollectionsByOwnerQuery, PaginatedResponse<CollectionResponse>>
     {
         public async Task<PaginatedResponse<CollectionResponse>> Handle(
-            GetCollectionsQuery request,
+            GetCollectionsByOwnerQuery request,
             CancellationToken cancellationToken)
         {
-            var result = await collectionRepository.GetPagedAsync(request.Query, cancellationToken);
+            var result = await collectionRepository.GetPagedByUserAsync(request.UserId, request.Query, cancellationToken);
             return result.ToPaginatedResponse(request.Query.Expand);
         }
     }

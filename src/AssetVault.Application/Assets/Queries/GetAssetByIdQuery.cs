@@ -1,6 +1,6 @@
 using AssetVault.Application.Assets.Mappings;
 using AssetVault.Application.Common.Interfaces;
-using AssetVault.Contracts.Responses;
+using AssetVault.Contracts.Responses.Assets;
 using MediatR;
 
 namespace AssetVault.Application.Assets.Queries

@@ -1,5 +1,8 @@
+using AssetVault.Application.Common;
 using AssetVault.Application.Common.Interfaces;
-using AssetVault.Contracts.Responses;
+using AssetVault.Contracts.Responses.Assets;
+using AssetVault.Contracts.Responses.Collections;
+using AssetVault.Contracts.Responses.Common;
 using AssetVault.Domain.Entities;
 
 namespace AssetVault.Application.Assets.Mappings
@@ -21,6 +24,17 @@ namespace AssetVault.Application.Assets.Mappings
                 Collections = expand.HasFlag(AssetExpand.Collections)
                     ? [.. asset.Collections.Select(c => new CollectionSummary(c.Id, c.Name))]
                     : null
+            };
+
+        public static PaginatedResponse<AssetResponse> ToPaginatedResponse(
+            this PagedResult<MediaAsset> result,
+            AssetExpand expand) =>
+            new()
+            {
+                Items = result.Items.Select(a => a.ToResponse(expand)).ToList(),
+                Total = result.Total,
+                Page = result.PageNumber,
+                PageSize = result.PageSize
             };
     }
 }

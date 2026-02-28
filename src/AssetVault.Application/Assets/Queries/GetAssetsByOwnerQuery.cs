@@ -1,27 +1,32 @@
 using AssetVault.Application.Assets.Mappings;
 using AssetVault.Application.Common.Interfaces;
-using AssetVault.Contracts.Responses;
+using AssetVault.Contracts.Responses.Assets;
+using AssetVault.Contracts.Responses.Common;
+using FluentValidation;
 using MediatR;
 
 namespace AssetVault.Application.Assets.Queries
 {
-    public record GetAssetsByOwnerQuery(Guid UserId, AssetExpand Expand = AssetExpand.None)
-        : IRequest<List<AssetResponse>>;
+    public record GetAssetsByOwnerQuery(Guid UserId, AssetQuery Query) : IRequest<PaginatedResponse<AssetResponse>>;
+
+    public class GetAssetsByOwnerQueryValidator : AbstractValidator<GetAssetsByOwnerQuery>
+    {
+        public GetAssetsByOwnerQueryValidator()
+        {
+            RuleFor(x => x.Query.Page).GreaterThanOrEqualTo(1);
+            RuleFor(x => x.Query.PageSize).InclusiveBetween(1, 100);
+        }
+    }
 
     public class GetAssetsByOwnerQueryHandler(IAssetRepository assetRepository)
-        : IRequestHandler<GetAssetsByOwnerQuery, List<AssetResponse>>
+        : IRequestHandler<GetAssetsByOwnerQuery, PaginatedResponse<AssetResponse>>
     {
-        public async Task<List<AssetResponse>> Handle(
+        public async Task<PaginatedResponse<AssetResponse>> Handle(
             GetAssetsByOwnerQuery request,
             CancellationToken cancellationToken)
         {
-            var assets = await assetRepository.GetByUserAsync(
-                request.UserId,
-                request.Expand,
-                cancellationToken);
-
-            // Map domain entities to contract DTOs
-            return [.. assets.Select(asset => asset.ToResponse(request.Expand))];
+            var result = await assetRepository.GetPagedByUserAsync(request.UserId, request.Query, cancellationToken);
+            return result.ToPaginatedResponse(request.Query.Expand);
         }
     }
 }

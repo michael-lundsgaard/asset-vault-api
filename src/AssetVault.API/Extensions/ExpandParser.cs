@@ -1,44 +1,33 @@
-using AssetVault.Application.Common.Interfaces;
-
 namespace AssetVault.API.Extensions
 {
     /// <summary>
-    /// Parses the ?expand= query string into expand flags enums.
+    /// Parses the ?expand= query string into any flags enum.
     /// Usage: GET /api/assets/{id}?expand=collections
     /// Usage: GET /api/collections/{id}?expand=assets
     /// </summary>
     public static class ExpandParser
     {
-        public static AssetExpand Parse(string? expand)
+        public static T Parse<T>(string? expand) where T : struct, Enum
         {
-            if (string.IsNullOrWhiteSpace(expand)) return AssetExpand.None;
+            if (string.IsNullOrWhiteSpace(expand)) return default;
 
-            var result = AssetExpand.None;
+            var result = default(T);
             var parts = expand.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             foreach (var part in parts)
             {
-                if (Enum.TryParse<AssetExpand>(part, ignoreCase: true, out var flag))
-                    result |= flag;
+                if (Enum.TryParse<T>(part, ignoreCase: true, out var flag))
+                    result = CombineFlags(result, flag);
             }
 
             return result;
         }
 
-        public static CollectionExpand ParseCollectionExpand(string? expand)
+        private static T CombineFlags<T>(T a, T b) where T : struct, Enum
         {
-            if (string.IsNullOrWhiteSpace(expand)) return CollectionExpand.None;
-
-            var result = CollectionExpand.None;
-            var parts = expand.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-            foreach (var part in parts)
-            {
-                if (Enum.TryParse<CollectionExpand>(part, ignoreCase: true, out var flag))
-                    result |= flag;
-            }
-
-            return result;
+            var intA = Convert.ToInt32(a);
+            var intB = Convert.ToInt32(b);
+            return (T)Enum.ToObject(typeof(T), intA | intB);
         }
     }
 }

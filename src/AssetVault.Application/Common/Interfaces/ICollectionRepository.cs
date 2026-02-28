@@ -1,3 +1,5 @@
+using AssetVault.Application.Collections.Queries;
+using AssetVault.Application.Common;
 using AssetVault.Domain.Entities;
 
 namespace AssetVault.Application.Common.Interfaces
@@ -10,9 +12,14 @@ namespace AssetVault.Application.Common.Interfaces
         Task<Collection?> GetByIdAsync(Guid id, CollectionExpand expand = CollectionExpand.None, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets all collections, optionally including related entities. Returns an empty list if none exist.
+        /// Gets a filtered, sorted, and paged list of all collections.
         /// </summary>
-        Task<IReadOnlyList<Collection>> GetAllAsync(CollectionExpand expand = CollectionExpand.None, CancellationToken cancellationToken = default);
+        Task<PagedResult<Collection>> GetPagedAsync(CollectionQuery query, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Gets a filtered, sorted, and paged list of collections owned by a specific user.
+        /// </summary>
+        Task<PagedResult<Collection>> GetPagedByUserAsync(Guid userId, CollectionQuery query, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Adds a new collection to the repository. The collection's ID should be generated before calling this method.

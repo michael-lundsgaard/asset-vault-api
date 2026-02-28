@@ -11,14 +11,23 @@ builder.Services.AddApiAuthentication(builder.Configuration);
 builder.Services.AddControllers();
 builder.Services.AddApiDocs();
 
+builder.Services.AddCors(options =>
+    options.AddPolicy("Frontend", policy => policy
+        .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment()) app.UseApiDocs();
+
+app.UseCors("Frontend");
 
 // Global exception handling for consistent error responses
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
+
 
 app.UseAuthentication();
 app.UseAuthorization();
