@@ -25,14 +25,14 @@ namespace AssetVault.Domain.Entities
             Guid userId,
             string fileName,
             string contentType,
-            long sizeInBytes)
+            long sizeBytes)
         {
             var asset = new MediaAsset
             {
                 UserId = userId,
                 FileName = fileName,
                 ContentType = contentType,
-                Size = FileSize.Create(sizeInBytes),
+                Size = FileSize.Create(sizeBytes),
                 Status = AssetStatus.Pending,
             };
 

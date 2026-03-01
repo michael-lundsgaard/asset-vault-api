@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 
@@ -30,6 +31,19 @@ namespace AssetVault.API.Extensions
         {
             services.AddOpenApi(options =>
             {
+                options.AddOperationTransformer((operation, context, _) =>
+                {
+                    if (context.Description.ActionDescriptor is ControllerActionDescriptor descriptor)
+                    {
+                        var explicitName = descriptor.EndpointMetadata
+                            .OfType<IEndpointNameMetadata>()
+                            .FirstOrDefault()?.EndpointName;
+
+                        operation.OperationId = explicitName ?? $"{descriptor.ControllerName}_{descriptor.ActionName}";
+                    }
+                    return Task.CompletedTask;
+                });
+
                 options.AddOperationTransformer((operation, _, _) =>
                 {
                     if (operation.Parameters is not null)

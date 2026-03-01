@@ -1,11 +1,10 @@
 {
-	"recommendations": [
-		"github.copilot",
-		"github.copilot-chat",
-		"ms-dotnettools.csharp",
-		"ms-dotnettools.csdevkit",
-		"formulahendry.dotnet-test-explorer",
-		"eamodio.gitlens",
-		"EditorConfig.EditorConfig"
-	]
+  "recommendations": [
+    "github.copilot-chat",
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.csdevkit",
+    "formulahendry.dotnet-test-explorer",
+    "eamodio.gitlens",
+    "EditorConfig.EditorConfig"
+  ]
 }

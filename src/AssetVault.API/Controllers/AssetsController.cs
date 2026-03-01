@@ -84,7 +84,7 @@ namespace AssetVault.API.Controllers
                     userId,
                     request.FileName,
                     request.ContentType,
-                    request.SizeInBytes),
+                    request.SizeBytes),
                 cancellationToken);
 
             return CreatedAtAction(

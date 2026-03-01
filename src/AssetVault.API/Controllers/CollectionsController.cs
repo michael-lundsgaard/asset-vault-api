@@ -123,6 +123,7 @@ namespace AssetVault.API.Controllers
         /// Add an asset to a collection.
         /// </summary>
         [HttpPost("{id:guid}/assets/{assetId:guid}")]
+        [EndpointName("AddAssetToCollection")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> AddAsset(
@@ -140,6 +141,7 @@ namespace AssetVault.API.Controllers
         /// Remove an asset from a collection.
         /// </summary>
         [HttpDelete("{id:guid}/assets/{assetId:guid}")]
+        [EndpointName("RemoveAssetFromCollection")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> RemoveAsset(

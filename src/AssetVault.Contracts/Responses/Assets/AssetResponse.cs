@@ -20,7 +20,7 @@ namespace AssetVault.Contracts.Responses.Assets
 
     public record PresignedUploadResponse(
         Guid AssetId,
-        string UploadUrl,
-        DateTime UrlExpiresAt
+        string PresignedUrl,
+        DateTime ExpiresAt
     );
 }

@@ -8,7 +8,7 @@ namespace AssetVault.Application.Assets.Commands
         Guid UserId,
         string FileName,
         string ContentType,
-        long SizeInBytes
+        long SizeBytes
     ) : IRequest<InitiateUploadResult>;
 
     public record InitiateUploadResult(
@@ -30,7 +30,7 @@ namespace AssetVault.Application.Assets.Commands
                 request.UserId,
                 request.FileName,
                 request.ContentType,
-                request.SizeInBytes);
+                request.SizeBytes);
 
             var presigned = await storageService.GenerateUploadUrlAsync(
                 asset.Id,

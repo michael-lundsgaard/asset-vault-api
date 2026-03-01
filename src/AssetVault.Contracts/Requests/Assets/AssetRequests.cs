@@ -3,7 +3,7 @@ namespace AssetVault.Contracts.Requests.Assets
     public record InitiateUploadRequest(
         string FileName,
         string ContentType,
-        long SizeInBytes
+        long SizeBytes
     );
 
     public record GetAssetsRequest

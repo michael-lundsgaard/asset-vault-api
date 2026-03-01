@@ -1,15 +1,19 @@
 {
-	"files.exclude": {
-		"**/bin": true,
-		"**/obj": true,
-		"**/.vs": true,
-		"**/*.user": true,
-		"**/*.suo": true,
-		"**/*.cache": true
-	},
-	"search.exclude": {
-		"**/bin": true,
-		"**/obj": true
-	},
-	"dotnet-test-explorer.testProjectPath": "tests/**/*.csproj"
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true,
+    "**/.vs": true,
+    "**/*.user": true,
+    "**/*.suo": true,
+    "**/*.cache": true
+  },
+  "search.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  },
+  "workbench.colorCustomizations": {
+    "titleBar.activeBackground": "#89b4fa",
+    "titleBar.activeForeground": "#1e1e2e"
+  },
+  "dotnet-test-explorer.testProjectPath": "tests/**/*.csproj"
 }
