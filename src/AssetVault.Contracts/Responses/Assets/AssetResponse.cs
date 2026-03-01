@@ -23,4 +23,10 @@ namespace AssetVault.Contracts.Responses.Assets
         string PresignedUrl,
         DateTime ExpiresAt
     );
+
+    public record PresignedDownloadResponse(
+        Guid AssetId,
+        string PresignedUrl,
+        DateTime ExpiresAt
+    );
 }

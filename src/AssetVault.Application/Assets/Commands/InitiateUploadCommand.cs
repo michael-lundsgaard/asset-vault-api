@@ -13,8 +13,8 @@ namespace AssetVault.Application.Assets.Commands
 
     public record InitiateUploadResult(
         Guid AssetId,
-        string UploadUrl,
-        DateTime UrlExpiresAt
+        string PresignedUrl,
+        DateTime ExpiresAt
     );
 
     public class InitiateUploadCommandHandler(
@@ -43,7 +43,7 @@ namespace AssetVault.Application.Assets.Commands
             await assetRepository.AddAsync(asset, cancellationToken);
             await assetRepository.SaveChangesAsync(cancellationToken);
 
-            return new InitiateUploadResult(asset.Id, presigned.UploadUrl, presigned.ExpiresAt);
+            return new InitiateUploadResult(asset.Id, presigned.PresignedUrl, presigned.ExpiresAt);
         }
     }
 

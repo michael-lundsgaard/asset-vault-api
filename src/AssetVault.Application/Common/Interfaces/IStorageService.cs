@@ -8,9 +8,9 @@ namespace AssetVault.Application.Common.Interfaces
         Task<PresignedUploadResult> GenerateUploadUrlAsync(Guid assetId, string fileName, string contentType, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Generates a pre-signed URL for temporary read access.
+        /// Generates a pre-signed URL for temporary read access. Expiry is determined by the storage service configuration.
         /// </summary>
-        Task<string> GenerateDownloadUrlAsync(string storagePath, TimeSpan expiry, CancellationToken cancellationToken = default);
+        Task<PresignedDownloadResult> GenerateDownloadUrlAsync(string storagePath, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Deletes a file from storage.
@@ -18,6 +18,7 @@ namespace AssetVault.Application.Common.Interfaces
         Task DeleteAsync(string storagePath, CancellationToken cancellationToken = default);
     }
 
-    public record PresignedUploadResult(string UploadUrl, string StoragePath, DateTime ExpiresAt);
+    public record PresignedUploadResult(string PresignedUrl, string StoragePath, DateTime ExpiresAt);
+    public record PresignedDownloadResult(string PresignedUrl, DateTime ExpiresAt);
 
 }

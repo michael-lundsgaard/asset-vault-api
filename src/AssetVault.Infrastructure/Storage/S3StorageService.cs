@@ -14,7 +14,8 @@ namespace AssetVault.Infrastructure.Storage
         public string SecretAccessKey { get; set; } = default!;
         public string ServiceUrl { get; set; } = default!;
         public bool UseHttp { get; set; } = false;
-        public int PresignedUrlExpiryMinutes { get; set; } = 15;
+        public int UploadPresignedUrlExpiryMinutes { get; set; } = 15;
+        public int DownloadPresignedUrlExpiryMinutes { get; set; } = 60;
     }
 
     /// <summary>
@@ -48,7 +49,7 @@ namespace AssetVault.Infrastructure.Storage
             CancellationToken cancellationToken = default)
         {
             var key = $"uploads/{assetId}/{fileName}";
-            var expiry = DateTime.UtcNow.AddMinutes(_options.PresignedUrlExpiryMinutes);
+            var expiry = DateTime.UtcNow.AddMinutes(_options.UploadPresignedUrlExpiryMinutes);
 
             var request = new GetPreSignedUrlRequest
             {
@@ -68,20 +69,26 @@ namespace AssetVault.Infrastructure.Storage
             return new PresignedUploadResult(url, key, expiry);
         }
 
-        public async Task<string> GenerateDownloadUrlAsync(
+        public async Task<PresignedDownloadResult> GenerateDownloadUrlAsync(
             string storagePath,
-            TimeSpan expiry,
             CancellationToken cancellationToken = default)
         {
+            var expiry = DateTime.UtcNow.AddMinutes(_options.DownloadPresignedUrlExpiryMinutes);
+
             var request = new GetPreSignedUrlRequest
             {
                 BucketName = _options.BucketName,
                 Key = storagePath,
                 Verb = HttpVerb.GET,
-                Expires = DateTime.UtcNow.Add(expiry)
+                Expires = expiry
             };
 
-            return await _s3.GetPreSignedURLAsync(request);
+            var url = await _s3.GetPreSignedURLAsync(request);
+
+            if (_options.UseHttp)
+                url = url.Replace("https://", "http://");
+
+            return new PresignedDownloadResult(url, expiry);
         }
 
         public async Task DeleteAsync(string storagePath, CancellationToken cancellationToken = default)

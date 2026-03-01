@@ -90,7 +90,19 @@ namespace AssetVault.API.Controllers
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = result.AssetId },
-                new PresignedUploadResponse(result.AssetId, result.UploadUrl, result.UrlExpiresAt));
+                new PresignedUploadResponse(result.AssetId, result.PresignedUrl, result.ExpiresAt));
+        }
+
+        /// <summary>
+        /// Returns a short-lived pre-signed S3 URL for downloading an asset.
+        /// </summary>
+        [HttpGet("{id:guid}/download")]
+        [ProducesResponseType(typeof(PresignedDownloadResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetDownloadUrl(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new GetAssetDownloadUrlQuery(id), cancellationToken);
+            return Ok(new PresignedDownloadResponse(result.AssetId, result.PresignedUrl, result.ExpiresAt));
         }
 
         /// <summary>
