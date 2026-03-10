@@ -1,73 +1,135 @@
-z# [PROJECT_NAME] Constitution
+<!--
+SYNC IMPACT REPORT
+==================
+Version change: (new) → 1.0.0
+Modified principles: N/A — initial ratification, all principles are new
+Added sections: Core Principles (I–V), Technology Stack Constraints, Development Workflow, Governance
+Removed sections: None
+Templates requiring updates:
+  ✅ .specify/templates/plan-template.md — Constitution Check gate updated
+  ✅ .specify/templates/spec-template.md — no structural changes required
+  ✅ .specify/templates/tasks-template.md — path conventions confirmed for .NET layout
+Deferred TODOs: None
+-->
 
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# AssetVault Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
+### I. Clean Architecture (NON-NEGOTIABLE)
 
-<!-- Example: I. Library-First -->
+Dependencies MUST flow inward: API → Application → Domain. Infrastructure implements
+interfaces defined in Application or Domain — never the reverse.
 
-[PRINCIPLE_1_DESCRIPTION]
+- `AssetVault.Domain` has zero external dependencies. Entities, Value Objects, Domain Events only.
+- `AssetVault.Application` depends only on Domain. MUST NOT reference Infrastructure or API.
+- `AssetVault.Infrastructure` implements Application/Domain interfaces (repositories, storage, EF Core).
+- `AssetVault.API` wires DI and exposes HTTP endpoints. MUST NOT contain business logic.
+- `AssetVault.Contracts` holds request/response DTOs only — no logic, no domain references.
+- Layer boundaries are enforced by NetArchTest architecture tests and MUST remain green on every PR.
 
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### II. CQRS via MediatR (NON-NEGOTIABLE)
 
-### [PRINCIPLE_2_NAME]
+Every user operation MUST be expressed as a MediatR Command or Query dispatched from the controller.
 
-<!-- Example: II. CLI Interface -->
+- Business logic MUST live exclusively in Application layer handlers — never in controllers or Infrastructure.
+- Controllers MUST be thin: parse request → `mediator.Send(command/query)` → return HTTP result.
+- Every Command and Query MUST have a corresponding FluentValidation validator registered via DI.
+- Command + Handler in the same file; Query + Handler in the same file.
+- Commands live in `Application/{Entity}/Commands/`; Queries in `Application/{Entity}/Queries/`.
+- Handlers use primary constructor injection with interfaces only — never `AppDbContext` directly.
+- Pipeline behaviors `ValidationBehavior` and `LoggingBehavior` MUST remain registered.
 
-[PRINCIPLE_2_DESCRIPTION]
+### III. Test Quality Gate
 
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+All new handlers MUST be covered by unit tests before a feature is considered complete.
 
-### [PRINCIPLE_3_NAME]
+- Unit tests: xUnit + FluentAssertions + NSubstitute. NEVER use Moq.
+- Integration tests: `WebApplicationFactory<Program>` + Testcontainers (PostgreSQL).
+- Architecture boundary tests: NetArchTest — all layer rules MUST pass.
+- Test naming convention: `Handle_Given{Condition}_Should{Outcome}`.
+- Use real `MemoryCache` instances in tests (not mocked) when the handler depends on `IMemoryCache`.
+- Test class constructor wires up `_sut`; fields are `readonly` with `Substitute.For<I...>()` inline.
 
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
+### IV. Presigned URL Storage Pattern
 
-[PRINCIPLE_3_DESCRIPTION]
+Files MUST never pass through the API server.
 
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- All file storage operations MUST follow: initiate upload (create entity, generate presigned URL)
+  → client uploads directly to S3/R2 → confirm upload (mark entity Active).
+- `IStorageService` in Application abstracts all S3/MinIO concerns; Infrastructure implements it.
+- New storage-related features MUST extend this pattern rather than introducing direct upload paths.
 
-### [PRINCIPLE_4_NAME]
+### V. Domain Integrity
 
-<!-- Example: IV. Integration Testing -->
+The domain model enforces its own invariants; no layer above may violate them.
 
-[PRINCIPLE_4_DESCRIPTION]
+- Entities MUST use `private` setters, a `private` EF Core constructor, and a `static Create(...)` factory.
+- State transitions MUST be encapsulated in entity methods (e.g., `asset.MarkAsUploaded()`), never
+  performed directly from handlers or controllers.
+- Domain events MUST be raised inside entity methods and dispatched via the EF Core interceptor or
+  `SaveChangesAsync` override — never directly from handlers.
+- Value Objects (`FileSize`, `StoragePath`) are record types with `private` constructor + `static Create()`.
+- NEVER use `DateTime.Now` — always `DateTime.UtcNow`.
 
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+## Technology Stack Constraints
 
-### [PRINCIPLE_5_NAME]
+The following stack choices are fixed and MUST NOT be replaced without a constitution amendment.
 
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
+| Concern            | Technology                                              |
+| ------------------ | ------------------------------------------------------- |
+| Runtime            | .NET 9 / ASP.NET Core 9                                 |
+| CQRS               | MediatR 12                                              |
+| Validation         | FluentValidation 11                                     |
+| Database ORM       | EF Core 9 + Npgsql → Supabase (PostgreSQL)              |
+| Storage            | AWS SDK S3 → MinIO (local) / Cloudflare R2 (production) |
+| Auth               | Supabase JWTs (standard `sub` + `email` claims)         |
+| API docs           | Scalar at `/scalar/v1`                                  |
+| Unit Tests         | xUnit + FluentAssertions + NSubstitute                  |
+| Integration Tests  | Testcontainers                                          |
+| Architecture Tests | NetArchTest                                             |
 
-[PRINCIPLE_5_DESCRIPTION]
+Additional constraints:
 
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+- No AutoMapper. Mapping MUST use manual static extension methods in `Application/{Entity}/Mappings/`.
+- `IMemoryCache` (built-in .NET) for UserProfile caching — no Redis required locally.
+- MinIO runs via `docker compose up -d`; S3 client uses `ForcePathStyle = true` with custom `ServiceUrl`.
 
-## [SECTION_2_NAME]
+## Development Workflow
 
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Follow this checklist when implementing any new feature:
 
-[SECTION_2_CONTENT]
+1. **Domain**: Add or extend entity in `AssetVault.Domain/Entities/`. Use `static Create(...)` factory.
+2. **Repository interface**: Define in `AssetVault.Application/Common/Interfaces/`.
+3. **EF Config**: Add `IEntityTypeConfiguration<TEntity>` in Infrastructure.
+4. **Handler(s)**: Create Command/Query + Handler + FluentValidation validator in `Application/{Entity}/`.
+5. **Mapping**: Add `ToResponse(...)` extension in `Application/{Entity}/Mappings/`.
+6. **Controller**: Add thin endpoint in `AssetVault.API/Controllers/`.
+7. **Tests**: Unit tests for handlers; integration test for the endpoint if applicable.
+8. **Migration**: `dotnet ef migrations add {Name} --project src/AssetVault.Infrastructure --startup-project src/AssetVault.API`
 
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+Auth access pattern in controllers:
 
-## [SECTION_3_NAME]
-
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
-
-[SECTION_3_CONTENT]
-
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Use `HttpContext.GetRequiredUserProfile()` — throws if profile missing.
+- Use `HttpContext.GetUserProfile()` — returns null if not present.
 
 ## Governance
 
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+This constitution supersedes all other practices documented in the repository. Any contradiction between
+this document and other guidelines MUST be resolved in favour of this constitution.
 
-[GOVERNANCE_RULES]
+Amendment procedure:
 
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+1. Open a PR with the proposed change to `.specify/memory/constitution.md`.
+2. Increment the version per semantic versioning rules (MAJOR: principle removal/redefinition;
+   MINOR: new principle or material expansion; PATCH: clarifications and wording).
+3. Update the Sync Impact Report comment at the top of this file.
+4. Propagate changes to affected templates (plan-template, spec-template, tasks-template).
+5. Include a migration note if any existing features are impacted.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
+All PRs MUST keep NetArchTest architecture tests green. Complexity beyond what the architecture defines
+MUST be justified in the PR description and tracked in plan.md's Complexity Tracking table.
 
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Refer to `.github/copilot-instructions.md` for runtime development guidance and conventions.
+
+**Version**: 1.0.0 | **Ratified**: 2026-03-10 | **Last Amended**: 2026-03-10

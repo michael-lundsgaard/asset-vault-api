@@ -29,9 +29,13 @@
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-[Gates determined based on constitution file]
+- [ ] **I. Clean Architecture**: Does the feature keep API → Application → Domain? No Infrastructure leak into Application/Domain?
+- [ ] **II. CQRS via MediatR**: Are all operations expressed as Commands/Queries? Does every Command/Query have a FluentValidation validator?
+- [ ] **III. Test Quality Gate**: Are handler unit tests planned? Integration tests via Testcontainers if endpoint is added?
+- [ ] **IV. Presigned URL Storage Pattern**: If the feature involves file storage, does it follow initiate → presigned URL → confirm? No direct file pass-through?
+- [ ] **V. Domain Integrity**: Are state transitions encapsulated in entity methods? Are domain events raised inside entity methods?
 
 ## Project Structure
 
@@ -48,47 +52,31 @@ specs/[###-feature]/
 ```
 
 ### Source Code (repository root)
+
 <!--
   ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
+  for this feature. Paths below reflect the AssetVault Clean Architecture structure.
 -->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+├── AssetVault.Domain/
+│   ├── Entities/          # New or modified entities
+│   ├── Events/            # Domain events for this feature
+│   └── ValueObjects/      # New Value Objects if needed
+├── AssetVault.Application/
+│   └── [Entity]/
+│       ├── Commands/      # Command + Handler + Validator (same file)
+│       ├── Queries/       # Query + Handler + Validator (same file)
+│       └── Mappings/      # ToResponse(...) extension methods
+├── AssetVault.Infrastructure/
+│   └── Persistence/       # EF Core IEntityTypeConfiguration, repository impl
+└── AssetVault.API/
+    └── Controllers/       # Thin controller — mediator.Send(...) only
 
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── AssetVault.UnitTests/        # Handler unit tests (NSubstitute mocks)
+└── AssetVault.IntegrationTests/ # Endpoint tests (Testcontainers + WebApplicationFactory)
 ```
 
 **Structure Decision**: [Document the selected structure and reference the real
@@ -98,7 +86,7 @@ directories captured above]
 
 > **Fill ONLY if Constitution Check has violations that must be justified**
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| Violation                  | Why Needed         | Simpler Alternative Rejected Because |
+| -------------------------- | ------------------ | ------------------------------------ |
+| [e.g., 4th project]        | [current need]     | [why 3 projects insufficient]        |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient]  |
