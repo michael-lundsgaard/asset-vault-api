@@ -1,9 +1,5 @@
-using AssetVault.Application.Common.Interfaces;
 using AssetVault.Application.UserProfiles.Commands;
-using AssetVault.Domain.Entities;
-using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
-using NSubstitute;
 
 namespace AssetVault.UnitTests.Application.UserProfiles;
 

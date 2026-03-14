@@ -1,9 +1,5 @@
 using AssetVault.Application.Assets.Commands;
-using AssetVault.Application.Common.Interfaces;
-using AssetVault.Domain.Entities;
 using AssetVault.Domain.Enums;
-using FluentAssertions;
-using NSubstitute;
 
 namespace AssetVault.UnitTests.Application.Assets.Commands;
 

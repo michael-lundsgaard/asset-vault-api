@@ -1,7 +1,4 @@
 using AssetVault.Application.Assets.Commands;
-using AssetVault.Application.Common.Interfaces;
-using FluentAssertions;
-using NSubstitute;
 
 namespace AssetVault.UnitTests.Application.Assets.Commands;
 

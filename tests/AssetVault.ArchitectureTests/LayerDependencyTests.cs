@@ -2,7 +2,6 @@ using AssetVault.API.Extensions;
 using AssetVault.Application;
 using AssetVault.Domain.Common;
 using AssetVault.Infrastructure.Persistence;
-using FluentAssertions;
 using NetArchTest.Rules;
 
 namespace AssetVault.ArchitectureTests;

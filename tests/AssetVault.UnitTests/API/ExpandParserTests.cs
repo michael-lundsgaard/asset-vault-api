@@ -1,8 +1,4 @@
 using AssetVault.API.Extensions;
-using AssetVault.Application.Assets.Queries;
-using AssetVault.Application.Common.Interfaces;
-using AssetVault.Application.Collections.Queries;
-using FluentAssertions;
 
 namespace AssetVault.UnitTests.API;
 

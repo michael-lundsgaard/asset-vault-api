@@ -1,5 +1,4 @@
 using AssetVault.Domain.ValueObjects;
-using FluentAssertions;
 
 namespace AssetVault.UnitTests.Domain.ValueObjects;
 

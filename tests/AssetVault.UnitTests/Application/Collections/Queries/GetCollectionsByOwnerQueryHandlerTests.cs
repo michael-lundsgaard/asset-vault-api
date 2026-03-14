@@ -1,9 +1,5 @@
 using AssetVault.Application.Collections.Queries;
 using AssetVault.Application.Common;
-using AssetVault.Application.Common.Interfaces;
-using AssetVault.Domain.Entities;
-using FluentAssertions;
-using NSubstitute;
 
 namespace AssetVault.UnitTests.Application.Collections.Queries;
 

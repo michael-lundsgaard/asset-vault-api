@@ -1,7 +1,5 @@
-using AssetVault.Domain.Entities;
 using AssetVault.Domain.Enums;
 using AssetVault.Domain.Events;
-using FluentAssertions;
 
 namespace AssetVault.UnitTests.Domain.Entities;
 

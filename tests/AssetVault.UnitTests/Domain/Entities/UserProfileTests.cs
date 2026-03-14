@@ -1,6 +1,3 @@
-using AssetVault.Domain.Entities;
-using FluentAssertions;
-
 namespace AssetVault.UnitTests.Domain.Entities;
 
 public class UserProfileTests

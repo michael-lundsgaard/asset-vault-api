@@ -6,7 +6,6 @@ using AssetVault.Contracts.Responses.Assets;
 using AssetVault.Contracts.Responses.Collections;
 using AssetVault.Contracts.Responses.Common;
 using AssetVault.IntegrationTests.Infrastructure;
-using FluentAssertions;
 
 namespace AssetVault.IntegrationTests.Collections;
 
