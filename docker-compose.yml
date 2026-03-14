@@ -1,7 +1,7 @@
 services:
   minio:
     image: quay.io/minio/minio
-    container_name: assetvault-minio
+    container_name: asset-vault-minio
     ports:
       - "9000:9000"   # S3 API
       - "9001:9001"   # Web console

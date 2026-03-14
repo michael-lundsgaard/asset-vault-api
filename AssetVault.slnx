@@ -6,4 +6,9 @@
         <Project Path="src/AssetVault.Domain/AssetVault.Domain.csproj" />
         <Project Path="src/AssetVault.Infrastructure/AssetVault.Infrastructure.csproj" />
     </Folder>
+    <Folder Name="/tests/">
+        <Project Path="tests/AssetVault.UnitTests/AssetVault.UnitTests.csproj" />
+        <Project Path="tests/AssetVault.IntegrationTests/AssetVault.IntegrationTests.csproj" />
+        <Project Path="tests/AssetVault.ArchitectureTests/AssetVault.ArchitectureTests.csproj" />
+    </Folder>
 </Solution>
