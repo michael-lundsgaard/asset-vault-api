@@ -110,7 +110,7 @@ public class AssetVaultWebAppFactory : WebApplicationFactory<Program>, IAsyncLif
     /// <summary>Called once after all tests in the class have run. Stops the container.</summary>
     public new async Task DisposeAsync()
     {
-        await _db.StopAsync();
+        await _db.DisposeAsync();
         await base.DisposeAsync();
     }
 }
