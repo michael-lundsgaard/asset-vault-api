@@ -27,10 +27,12 @@ Files never pass through the API server:
 ## Auth & UserProfile Flow
 
 - Auth uses Supabase JWTs (standard `sub` + `email` claims)
-- `UserProfileMiddleware` runs after `UseAuthorization`, fires `GetOrCreateUserProfileCommand` per authenticated request, and stores the result in `HttpContext.Items["UserProfile"]`
-- `GetOrCreateUserProfileCommand` checks `IMemoryCache` first (key: `userprofile:{userId}`) before hitting the DB — do not remove the cache layer
+- `UserProfileMiddleware` runs after `UseAuthorization`, resolves `IUserProfileService` per-request from `context.RequestServices`, calls `GetOrCreateAsync(userId, email, ct)`, and stores the result in `HttpContext.Items["UserProfile"]`
+- `IUserProfileService.GetOrCreateAsync` checks `IMemoryCache` first (key from `IUserProfileService.CacheKey(userId)`) before hitting the DB — do not remove the cache layer
+- `UserProfileService` lives in the **Application** layer and is registered as `Scoped`. It must only be consumed by middleware — never injected into CQRS handlers.
+- To invalidate the cache when a profile is updated, use `IUserProfileService.CacheKey(userId)` from your `UpdateUserProfileCommandHandler`
 - Controllers access the profile via `HttpContext.GetRequiredUserProfile()` (throws if missing) or `GetUserProfile()` (returns null)
-- `ISender` is resolved from `context.RequestServices` inside the singleton middleware to avoid capturing a scoped service
+- `IUserProfileService` is resolved from `context.RequestServices` inside the singleton middleware to avoid capturing a scoped service
 
 ## CQRS Conventions
 

@@ -1,6 +1,5 @@
 using System.Security.Claims;
-using AssetVault.Application.UserProfiles.Commands;
-using MediatR;
+using AssetVault.Application.Common.Interfaces;
 
 namespace AssetVault.API.Middleware
 {
@@ -10,20 +9,15 @@ namespace AssetVault.API.Middleware
         {
             if (context.User.Identity?.IsAuthenticated == true)
             {
-                // Supabase JWTs carry `sub` (UUID) and `email` as standard claims.
                 var sub = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
                 var email = context.User.FindFirstValue(ClaimTypes.Email);
 
                 if (Guid.TryParse(sub, out var userId) && email is not null)
                 {
-                    // ISender is scoped — resolve per-request to avoid capturing a scoped
-                    // service inside the singleton middleware.
-                    var sender = context.RequestServices.GetRequiredService<ISender>();
-                    var profile = await sender.Send(
-                        new GetOrCreateUserProfileCommand(userId, email),
-                        context.RequestAborted);
+                    // Resolve per-request to avoid capturing a scoped service inside the singleton middleware.
+                    var userProfileService = context.RequestServices.GetRequiredService<IUserProfileService>();
+                    var profile = await userProfileService.GetOrCreateAsync(userId, email, context.RequestAborted);
 
-                    // Store the profile in HttpContext.Items for downstream access in controllers, etc.
                     context.Items["UserProfile"] = profile;
                 }
             }

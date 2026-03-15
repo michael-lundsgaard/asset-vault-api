@@ -1,4 +1,6 @@
 using AssetVault.Application.Common.Behaviour;
+using AssetVault.Application.Common.Interfaces;
+using AssetVault.Application.UserProfiles;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +15,8 @@ namespace AssetVault.Application.Extensions
         /// </summary>
         public static IServiceCollection AddApplication(this IServiceCollection services)
         {
+            services.AddScoped<IUserProfileService, UserProfileService>();
+
             services.AddMediatR(config =>
             {
                 config.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly);

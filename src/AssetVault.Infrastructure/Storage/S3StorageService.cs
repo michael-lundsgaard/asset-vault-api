@@ -5,7 +5,6 @@ using Microsoft.Extensions.Options;
 
 namespace AssetVault.Infrastructure.Storage
 {
-
     public class S3StorageOptions
     {
         public string BucketName { get; set; } = default!;
@@ -38,7 +37,6 @@ namespace AssetVault.Infrastructure.Storage
                     ServiceURL = _options.ServiceUrl,
                     ForcePathStyle = true, // Required for R2
                     UseHttp = _options.UseHttp
-
                 });
         }
 
@@ -85,6 +83,7 @@ namespace AssetVault.Infrastructure.Storage
 
             var url = await _s3.GetPreSignedURLAsync(request);
 
+            // AWS SDK ignores UseHttp for presigned URLs — fix it manually
             if (_options.UseHttp)
                 url = url.Replace("https://", "http://");
 
