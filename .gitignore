@@ -55,5 +55,6 @@ nunit-*.xml
 
 # Local development settings
 **/appsettings.Development.json
+**/appsettings.Production.json
 
 .fake

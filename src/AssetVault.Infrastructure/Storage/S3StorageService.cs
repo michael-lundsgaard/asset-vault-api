@@ -36,7 +36,9 @@ namespace AssetVault.Infrastructure.Storage
                 {
                     ServiceURL = _options.ServiceUrl,
                     ForcePathStyle = true, // Required for R2
-                    UseHttp = _options.UseHttp
+                    UseHttp = _options.UseHttp,
+                    SignatureVersion = "4",
+                    AuthenticationRegion = "auto" // R2 doesn't require a region, but AWS SDK needs this set to avoid signing issues
                 });
         }
 
