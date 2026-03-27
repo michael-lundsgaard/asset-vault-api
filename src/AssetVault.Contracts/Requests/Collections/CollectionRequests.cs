@@ -2,7 +2,8 @@ namespace AssetVault.Contracts.Requests.Collections
 {
     public record CreateCollectionRequest(
         string Name,
-        string? Description = null
+        string? Description = null,
+        string Type = "Shared"
     );
 
     public record UpdateCollectionRequest(

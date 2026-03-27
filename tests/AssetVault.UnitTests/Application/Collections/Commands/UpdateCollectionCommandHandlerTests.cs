@@ -1,4 +1,5 @@
 using AssetVault.Application.Collections.Commands;
+using AssetVault.Domain.Enums;
 
 namespace AssetVault.UnitTests.Application.Collections.Commands;
 
@@ -22,10 +23,23 @@ public class UpdateCollectionCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongOwner_ShouldThrowUnauthorizedAccessException()
+    public async Task Handle_GivenFavoritesCollection_ShouldThrowInvalidOperationException()
     {
-        var collection = Collection.Create(Guid.NewGuid(), "Original");
-        var command = new UpdateCollectionCommand(Guid.NewGuid(), collection.Id, "New Name", null); // different owner
+        var userId = Guid.NewGuid();
+        var favorites = Collection.CreateFavorites(userId);
+        var command = new UpdateCollectionCommand(userId, favorites.Id, "New Name", null);
+        _collectionRepository.GetByIdAsync(command.Id, cancellationToken: Arg.Any<CancellationToken>()).Returns(favorites);
+
+        var act = async () => await _sut.Handle(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task Handle_GivenPrivateCollectionAndWrongOwner_ShouldThrowUnauthorizedAccessException()
+    {
+        var collection = Collection.Create(Guid.NewGuid(), "Private", null, CollectionType.Private);
+        var command = new UpdateCollectionCommand(Guid.NewGuid(), collection.Id, "New Name", null);
         _collectionRepository.GetByIdAsync(command.Id, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);
@@ -34,18 +48,31 @@ public class UpdateCollectionCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenValidCommand_ShouldUpdateCollectionAndSaveChanges()
+    public async Task Handle_GivenSharedCollectionAndDifferentUser_ShouldUpdateSuccessfully()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Old Name");
-        var command = new UpdateCollectionCommand(userId, collection.Id, "New Name", "New desc");
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var differentUserId = Guid.NewGuid();
+        var command = new UpdateCollectionCommand(differentUserId, collection.Id, "New Name", "desc");
         _collectionRepository.GetByIdAsync(command.Id, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.Name.Should().Be("New Name");
-        result.Description.Should().Be("New desc");
         await _collectionRepository.Received(1).UpdateAsync(collection, Arg.Any<CancellationToken>());
+        await _collectionRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Handle_GivenPrivateCollectionAndCorrectOwner_ShouldUpdateSuccessfully()
+    {
+        var userId = Guid.NewGuid();
+        var collection = Collection.Create(userId, "Private", null, CollectionType.Private);
+        var command = new UpdateCollectionCommand(userId, collection.Id, "New Name", "desc");
+        _collectionRepository.GetByIdAsync(command.Id, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.Name.Should().Be("New Name");
         await _collectionRepository.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 }

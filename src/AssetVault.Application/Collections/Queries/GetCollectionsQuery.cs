@@ -24,7 +24,7 @@ namespace AssetVault.Application.Collections.Queries
             GetCollectionsQuery request,
             CancellationToken cancellationToken)
         {
-            var result = await collectionRepository.GetPagedAsync(request.Query, cancellationToken);
+            var result = await collectionRepository.GetPagedSharedAsync(request.Query, cancellationToken);
             return result.ToPaginatedResponse(request.Query.Expand);
         }
     }

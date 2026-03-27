@@ -17,7 +17,7 @@ public class GetCollectionsQueryHandlerTests
         var collection = Collection.Create(Guid.NewGuid(), "Test");
         var pagedResult = new PagedResult<Collection>([collection], 1, 1, 20);
         var query = new GetCollectionsQuery(new CollectionQuery());
-        _collectionRepository.GetPagedAsync(query.Query, Arg.Any<CancellationToken>()).Returns(pagedResult);
+        _collectionRepository.GetPagedSharedAsync(query.Query, Arg.Any<CancellationToken>()).Returns(pagedResult);
 
         var result = await _sut.Handle(query, CancellationToken.None);
 

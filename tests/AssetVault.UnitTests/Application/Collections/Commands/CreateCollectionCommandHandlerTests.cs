@@ -1,4 +1,5 @@
 using AssetVault.Application.Collections.Commands;
+using AssetVault.Domain.Enums;
 
 namespace AssetVault.UnitTests.Application.Collections.Commands;
 
@@ -9,6 +10,17 @@ public class CreateCollectionCommandHandlerTests
 
     public CreateCollectionCommandHandlerTests() =>
         _sut = new CreateCollectionCommandHandler(_collectionRepository);
+
+    [Fact]
+    public async Task Handle_GivenFavoritesType_ShouldThrowInvalidOperationException()
+    {
+        var command = new CreateCollectionCommand(Guid.NewGuid(), "Favorites", null, CollectionType.Favorites);
+
+        var act = async () => await _sut.Handle(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        await _collectionRepository.DidNotReceive().AddAsync(Arg.Any<Collection>(), Arg.Any<CancellationToken>());
+    }
 
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldReturnCollectionResponse()

@@ -15,6 +15,7 @@ namespace AssetVault.Application.Collections.Mappings
                 collection.UserId,
                 collection.Name,
                 collection.Description,
+                collection.Type.ToString(),
                 collection.CreatedAt)
             {
                 Assets = expand.HasFlag(CollectionExpand.Assets)

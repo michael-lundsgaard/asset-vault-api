@@ -3,21 +3,21 @@ using AssetVault.Application.Common;
 
 namespace AssetVault.UnitTests.Application.Collections.Queries;
 
-public class GetCollectionsByOwnerQueryHandlerTests
+public class GetCollectionsByUserQueryHandlerTests
 {
     private readonly ICollectionRepository _collectionRepository = Substitute.For<ICollectionRepository>();
-    private readonly GetCollectionsByOwnerQueryHandler _sut;
+    private readonly GetCollectionsByUserQueryHandler _sut;
 
-    public GetCollectionsByOwnerQueryHandlerTests() =>
-        _sut = new GetCollectionsByOwnerQueryHandler(_collectionRepository);
+    public GetCollectionsByUserQueryHandlerTests() =>
+        _sut = new GetCollectionsByUserQueryHandler(_collectionRepository);
 
     [Fact]
-    public async Task Handle_ShouldReturnPaginatedResponseForOwner()
+    public async Task Handle_ShouldReturnPaginatedResponseForUser()
     {
         var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Test");
+        var collection = Collection.Create(userId, "Private");
         var pagedResult = new PagedResult<Collection>([collection], 1, 1, 20);
-        var query = new GetCollectionsByOwnerQuery(userId, new CollectionQuery());
+        var query = new GetCollectionsByUserQuery(userId, new CollectionQuery());
         _collectionRepository.GetPagedByUserAsync(userId, query.Query, Arg.Any<CancellationToken>()).Returns(pagedResult);
 
         var result = await _sut.Handle(query, CancellationToken.None);

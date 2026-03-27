@@ -11,6 +11,7 @@ namespace AssetVault.Contracts.Responses.Collections
         Guid UserId,
         string Name,
         string? Description,
+        string Type,
         DateTime CreatedAt)
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -12,14 +12,19 @@ namespace AssetVault.Application.Common.Interfaces
         Task<Collection?> GetByIdAsync(Guid id, CollectionExpand expand = CollectionExpand.None, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets a filtered, sorted, and paged list of all collections.
+        /// Gets a filtered, sorted, and paged list of shared collections.
         /// </summary>
-        Task<PagedResult<Collection>> GetPagedAsync(CollectionQuery query, CancellationToken cancellationToken = default);
+        Task<PagedResult<Collection>> GetPagedSharedAsync(CollectionQuery query, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Gets a filtered, sorted, and paged list of collections owned by a specific user.
+        /// Gets a filtered, sorted, and paged list of the user's private and favorites collections.
         /// </summary>
         Task<PagedResult<Collection>> GetPagedByUserAsync(Guid userId, CollectionQuery query, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns the user's Favorites collection, or null if it hasn't been created yet.
+        /// </summary>
+        Task<Collection?> GetFavoritesAsync(Guid userId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Adds a new collection to the repository. The collection's ID should be generated before calling this method.
@@ -37,7 +42,7 @@ namespace AssetVault.Application.Common.Interfaces
         Task DeleteAsync(Collection collection, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Persists any changes made to the collections in the repository. 
+        /// Persists any changes made to the collections in the repository.
         /// This should be called after adding, updating, or deleting collections to save those changes to the database.
         /// </summary>
         Task SaveChangesAsync(CancellationToken cancellationToken = default);

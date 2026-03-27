@@ -2,6 +2,7 @@ using AssetVault.Application.Collections.Queries;
 using AssetVault.Application.Common;
 using AssetVault.Application.Common.Interfaces;
 using AssetVault.Domain.Entities;
+using AssetVault.Domain.Enums;
 using AssetVault.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
@@ -27,11 +28,11 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
         }
 
         /// <inheritdoc/>
-        public async Task<PagedResult<Collection>> GetPagedAsync(
+        public async Task<PagedResult<Collection>> GetPagedSharedAsync(
             CollectionQuery query,
             CancellationToken cancellationToken = default)
         {
-            var queryable = ApplyExpands(context.Collections.AsNoTracking(), query.Expand);
+            var queryable = ApplyExpands(context.Collections.AsNoTracking().Where(c => c.Type == CollectionType.Shared), query.Expand);
             queryable = queryable.ApplyFilters(query);
 
             var total = await queryable.CountAsync(cancellationToken);
@@ -50,7 +51,10 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
             CollectionQuery query,
             CancellationToken cancellationToken = default)
         {
-            var queryable = ApplyExpands(context.Collections.AsNoTracking().Where(c => c.UserId == userId), query.Expand);
+            var queryable = ApplyExpands(
+                context.Collections.AsNoTracking()
+                    .Where(c => c.UserId == userId && (c.Type == CollectionType.Private || c.Type == CollectionType.Favorites)),
+                query.Expand);
             queryable = queryable.ApplyFilters(query);
 
             var total = await queryable.CountAsync(cancellationToken);
@@ -62,6 +66,11 @@ namespace AssetVault.Infrastructure.Persistence.Repositories
 
             return new PagedResult<Collection>(items, total, query.Page, query.PageSize);
         }
+
+        /// <inheritdoc/>
+        public async Task<Collection?> GetFavoritesAsync(Guid userId, CancellationToken cancellationToken = default) =>
+            await context.Collections
+                .FirstOrDefaultAsync(c => c.UserId == userId && c.Type == CollectionType.Favorites, cancellationToken);
 
         /// <inheritdoc/>
         public async Task AddAsync(Collection collection, CancellationToken cancellationToken = default) =>

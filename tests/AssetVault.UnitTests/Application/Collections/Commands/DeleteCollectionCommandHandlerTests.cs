@@ -22,10 +22,23 @@ public class DeleteCollectionCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_GivenFavoritesCollection_ShouldThrowInvalidOperationException()
+    {
+        var userId = Guid.NewGuid();
+        var favorites = Collection.CreateFavorites(userId);
+        var command = new DeleteCollectionCommand(userId, favorites.Id);
+        _collectionRepository.GetByIdAsync(command.Id, cancellationToken: Arg.Any<CancellationToken>()).Returns(favorites);
+
+        var act = async () => await _sut.Handle(command, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
     public async Task Handle_GivenWrongOwner_ShouldThrowUnauthorizedAccessException()
     {
         var collection = Collection.Create(Guid.NewGuid(), "My Collection");
-        var command = new DeleteCollectionCommand(Guid.NewGuid(), collection.Id); // different owner
+        var command = new DeleteCollectionCommand(Guid.NewGuid(), collection.Id);
         _collectionRepository.GetByIdAsync(command.Id, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);

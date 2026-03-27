@@ -1,4 +1,5 @@
 using AssetVault.Application.Collections.Commands;
+using AssetVault.Domain.Enums;
 
 namespace AssetVault.UnitTests.Application.Collections.Commands;
 
@@ -10,14 +11,6 @@ public class AddAssetToCollectionCommandHandlerTests
 
     public AddAssetToCollectionCommandHandlerTests() =>
         _sut = new AddAssetToCollectionCommandHandler(_collectionRepository, _assetRepository);
-
-    private static (MediaAsset asset, Collection collection) CreateMatchingPair()
-    {
-        var userId = Guid.NewGuid();
-        var asset = MediaAsset.Create(userId, "file.jpg", "image/jpeg", 512);
-        var collection = Collection.Create(userId, "My Collection");
-        return (asset, collection);
-    }
 
     [Fact]
     public async Task Handle_GivenCollectionNotFound_ShouldThrowKeyNotFoundException()
@@ -31,10 +24,10 @@ public class AddAssetToCollectionCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongCollectionOwner_ShouldThrowUnauthorizedAccessException()
+    public async Task Handle_GivenPrivateCollectionAndWrongOwner_ShouldThrowUnauthorizedAccessException()
     {
-        var collection = Collection.Create(Guid.NewGuid(), "Coll");
-        var command = new AddAssetToCollectionCommand(Guid.NewGuid(), collection.Id, Guid.NewGuid()); // different owner
+        var collection = Collection.Create(Guid.NewGuid(), "Private", null, CollectionType.Private);
+        var command = new AddAssetToCollectionCommand(Guid.NewGuid(), collection.Id, Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);
@@ -43,11 +36,24 @@ public class AddAssetToCollectionCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_GivenSharedCollectionAndDifferentUser_ShouldNotThrow()
+    {
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var asset = MediaAsset.Create(Guid.NewGuid(), "file.jpg", "image/jpeg", 512);
+        var command = new AddAssetToCollectionCommand(Guid.NewGuid(), collection.Id, asset.Id);
+        _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
+        _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
+
+        await _sut.Handle(command, CancellationToken.None);
+
+        asset.Collections.Should().ContainSingle(c => c.Id == collection.Id);
+    }
+
+    [Fact]
     public async Task Handle_GivenAssetNotFound_ShouldThrowKeyNotFoundException()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Coll");
-        var command = new AddAssetToCollectionCommand(userId, collection.Id, Guid.NewGuid());
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var command = new AddAssetToCollectionCommand(Guid.NewGuid(), collection.Id, Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns((MediaAsset?)null);
 
@@ -57,26 +63,12 @@ public class AddAssetToCollectionCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongAssetOwner_ShouldThrowUnauthorizedAccessException()
-    {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Coll");
-        var asset = MediaAsset.Create(Guid.NewGuid(), "f.jpg", "image/jpeg", 100); // owned by different user
-        var command = new AddAssetToCollectionCommand(userId, collection.Id, asset.Id);
-        _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
-        _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
-
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
     public async Task Handle_GivenAssetAlreadyInCollection_ShouldReturnWithoutSaving()
     {
-        var (asset, collection) = CreateMatchingPair();
-        asset.AddToCollection(collection); // pre-add so it's already there
-        var command = new AddAssetToCollectionCommand(asset.UserId, collection.Id, asset.Id);
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var asset = MediaAsset.Create(Guid.NewGuid(), "file.jpg", "image/jpeg", 512);
+        asset.AddToCollection(collection);
+        var command = new AddAssetToCollectionCommand(Guid.NewGuid(), collection.Id, asset.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
 
@@ -88,8 +80,9 @@ public class AddAssetToCollectionCommandHandlerTests
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldAddAssetToCollectionAndSaveChanges()
     {
-        var (asset, collection) = CreateMatchingPair();
-        var command = new AddAssetToCollectionCommand(asset.UserId, collection.Id, asset.Id);
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var asset = MediaAsset.Create(Guid.NewGuid(), "file.jpg", "image/jpeg", 512);
+        var command = new AddAssetToCollectionCommand(Guid.NewGuid(), collection.Id, asset.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
 

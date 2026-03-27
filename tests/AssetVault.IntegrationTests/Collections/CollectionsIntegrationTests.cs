@@ -76,16 +76,31 @@ public class CollectionsIntegrationTests(AssetVaultWebAppFactory factory)
     }
 
     [Fact]
-    public async Task UpdateCollection_GivenWrongOwner_ShouldReturn403()
+    public async Task UpdateCollection_GivenPrivateCollectionAndWrongOwner_ShouldReturn403()
     {
         AuthenticateAs(Guid.NewGuid(), "owner@example.com");
-        var collectionId = await CreateCollectionAndGetId("Owned Collection");
+        var collectionId = await CreateCollectionAndGetId("Private Collection", "Private");
 
-        AuthenticateAs(Guid.NewGuid(), "attacker@example.com");
+        AuthenticateAs(Guid.NewGuid(), "other@example.com");
         var response = await Client.PatchAsJsonAsync($"api/collections/{collectionId}",
             new UpdateCollectionRequest("Hijacked"));
 
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task UpdateCollection_GivenSharedCollectionAndDifferentUser_ShouldReturn200()
+    {
+        AuthenticateAs(Guid.NewGuid(), "creator@example.com");
+        var collectionId = await CreateCollectionAndGetId("Shared Collection");
+
+        AuthenticateAs(Guid.NewGuid(), "contributor@example.com");
+        var response = await Client.PatchAsJsonAsync($"api/collections/{collectionId}",
+            new UpdateCollectionRequest("Community Updated Name"));
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        var body = await response.Content.ReadFromJsonAsync<CollectionResponse>();
+        body!.Name.Should().Be("Community Updated Name");
     }
 
     [Fact]
@@ -175,10 +190,10 @@ public class CollectionsIntegrationTests(AssetVaultWebAppFactory factory)
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
-    private async Task<Guid> CreateCollectionAndGetId(string name)
+    private async Task<Guid> CreateCollectionAndGetId(string name, string type = "Shared")
     {
         var response = await Client.PostAsJsonAsync("api/collections",
-            new CreateCollectionRequest(name));
+            new CreateCollectionRequest(name, Type: type));
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<CollectionResponse>();
         return result!.Id;

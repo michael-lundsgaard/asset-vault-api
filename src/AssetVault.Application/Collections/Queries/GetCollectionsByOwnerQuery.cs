@@ -7,21 +7,21 @@ using MediatR;
 
 namespace AssetVault.Application.Collections.Queries
 {
-    public record GetCollectionsByOwnerQuery(Guid UserId, CollectionQuery Query) : IRequest<PaginatedResponse<CollectionResponse>>;
+    public record GetCollectionsByUserQuery(Guid UserId, CollectionQuery Query) : IRequest<PaginatedResponse<CollectionResponse>>;
 
-    public class GetCollectionsByOwnerQueryValidator : AbstractValidator<GetCollectionsByOwnerQuery>
+    public class GetCollectionsByUserQueryValidator : AbstractValidator<GetCollectionsByUserQuery>
     {
-        public GetCollectionsByOwnerQueryValidator()
+        public GetCollectionsByUserQueryValidator()
         {
             RuleFor(x => x.Query).SetValidator(new CollectionQueryValidator());
         }
     }
 
-    public class GetCollectionsByOwnerQueryHandler(ICollectionRepository collectionRepository)
-        : IRequestHandler<GetCollectionsByOwnerQuery, PaginatedResponse<CollectionResponse>>
+    public class GetCollectionsByUserQueryHandler(ICollectionRepository collectionRepository)
+        : IRequestHandler<GetCollectionsByUserQuery, PaginatedResponse<CollectionResponse>>
     {
         public async Task<PaginatedResponse<CollectionResponse>> Handle(
-            GetCollectionsByOwnerQuery request,
+            GetCollectionsByUserQuery request,
             CancellationToken cancellationToken)
         {
             var result = await collectionRepository.GetPagedByUserAsync(request.UserId, request.Query, cancellationToken);

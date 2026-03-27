@@ -1,6 +1,7 @@
 using AssetVault.Application.Collections.Mappings;
 using AssetVault.Application.Common.Interfaces;
 using AssetVault.Contracts.Responses.Collections;
+using AssetVault.Domain.Enums;
 using MediatR;
 
 namespace AssetVault.Application.Collections.Commands
@@ -18,10 +19,11 @@ namespace AssetVault.Application.Collections.Commands
             var collection = await collectionRepository.GetByIdAsync(request.Id, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Collection {request.Id} not found.");
 
-            if (collection.UserId != request.UserId)
-            {
+            if (collection.Type == CollectionType.Favorites)
+                throw new InvalidOperationException("The Favorites collection cannot be renamed.");
+
+            if (collection.Type != CollectionType.Shared && collection.UserId != request.UserId)
                 throw new UnauthorizedAccessException("You do not have permission to modify this collection.");
-            }
 
             collection.Update(request.Name, request.Description);
 

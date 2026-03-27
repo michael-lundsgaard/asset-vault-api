@@ -1,4 +1,5 @@
 using AssetVault.Domain.Common;
+using AssetVault.Domain.Enums;
 
 namespace AssetVault.Domain.Entities
 {
@@ -7,6 +8,7 @@ namespace AssetVault.Domain.Entities
         public Guid UserId { get; private set; }
         public string Name { get; private set; } = default!;
         public string? Description { get; private set; }
+        public CollectionType Type { get; private set; }
         public ICollection<MediaAsset> Assets { get; private set; } = [];
 
         // Navigation
@@ -14,8 +16,11 @@ namespace AssetVault.Domain.Entities
 
         private Collection() { }
 
-        public static Collection Create(Guid userId, string name, string? description = null) =>
-            new() { UserId = userId, Name = name, Description = description };
+        public static Collection Create(Guid userId, string name, string? description = null, CollectionType type = CollectionType.Shared) =>
+            new() { UserId = userId, Name = name, Description = description, Type = type };
+
+        public static Collection CreateFavorites(Guid userId) =>
+            new() { UserId = userId, Name = "Favorites", Type = CollectionType.Favorites };
 
         public void Update(string name, string? description)
         {

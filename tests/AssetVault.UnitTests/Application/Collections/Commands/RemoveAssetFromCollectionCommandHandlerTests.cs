@@ -1,4 +1,5 @@
 using AssetVault.Application.Collections.Commands;
+using AssetVault.Domain.Enums;
 
 namespace AssetVault.UnitTests.Application.Collections.Commands;
 
@@ -10,14 +11,6 @@ public class RemoveAssetFromCollectionCommandHandlerTests
 
     public RemoveAssetFromCollectionCommandHandlerTests() =>
         _sut = new RemoveAssetFromCollectionCommandHandler(_collectionRepository, _assetRepository);
-
-    private static (MediaAsset asset, Collection collection) CreateMatchingPair()
-    {
-        var userId = Guid.NewGuid();
-        var asset = MediaAsset.Create(userId, "file.jpg", "image/jpeg", 512);
-        var collection = Collection.Create(userId, "My Collection");
-        return (asset, collection);
-    }
 
     [Fact]
     public async Task Handle_GivenCollectionNotFound_ShouldThrowKeyNotFoundException()
@@ -31,9 +24,9 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongCollectionOwner_ShouldThrowUnauthorizedAccessException()
+    public async Task Handle_GivenPrivateCollectionAndWrongOwner_ShouldThrowUnauthorizedAccessException()
     {
-        var collection = Collection.Create(Guid.NewGuid(), "Coll");
+        var collection = Collection.Create(Guid.NewGuid(), "Private", null, CollectionType.Private);
         var command = new RemoveAssetFromCollectionCommand(Guid.NewGuid(), collection.Id, Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
@@ -45,9 +38,8 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     [Fact]
     public async Task Handle_GivenAssetNotFound_ShouldThrowKeyNotFoundException()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Coll");
-        var command = new RemoveAssetFromCollectionCommand(userId, collection.Id, Guid.NewGuid());
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var command = new RemoveAssetFromCollectionCommand(Guid.NewGuid(), collection.Id, Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns((MediaAsset?)null);
 
@@ -59,9 +51,9 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     [Fact]
     public async Task Handle_GivenAssetNotInCollection_ShouldReturnWithoutSaving()
     {
-        var (asset, collection) = CreateMatchingPair();
-        // asset is NOT in the collection
-        var command = new RemoveAssetFromCollectionCommand(asset.UserId, collection.Id, asset.Id);
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var asset = MediaAsset.Create(Guid.NewGuid(), "file.jpg", "image/jpeg", 512);
+        var command = new RemoveAssetFromCollectionCommand(Guid.NewGuid(), collection.Id, asset.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
 
@@ -73,9 +65,10 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldRemoveAssetFromCollectionAndSaveChanges()
     {
-        var (asset, collection) = CreateMatchingPair();
+        var collection = Collection.Create(Guid.NewGuid(), "Shared");
+        var asset = MediaAsset.Create(Guid.NewGuid(), "file.jpg", "image/jpeg", 512);
         asset.AddToCollection(collection);
-        var command = new RemoveAssetFromCollectionCommand(asset.UserId, collection.Id, asset.Id);
+        var command = new RemoveAssetFromCollectionCommand(Guid.NewGuid(), collection.Id, asset.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
 
