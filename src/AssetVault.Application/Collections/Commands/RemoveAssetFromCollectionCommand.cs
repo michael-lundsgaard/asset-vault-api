@@ -3,7 +3,7 @@ using MediatR;
 
 namespace AssetVault.Application.Collections.Commands
 {
-    public record RemoveAssetFromCollectionCommand(Guid UserId, Guid CollectionId, Guid AssetId) : IRequest;
+    public record RemoveAssetFromCollectionCommand(Guid CollectionId, Guid AssetId) : IRequest;
 
     public class RemoveAssetFromCollectionCommandHandler(
         ICollectionRepository collectionRepository,
@@ -15,19 +15,9 @@ namespace AssetVault.Application.Collections.Commands
             var collection = await collectionRepository.GetByIdAsync(request.CollectionId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Collection {request.CollectionId} not found.");
 
-            if (collection.UserId != request.UserId)
-            {
-                throw new UnauthorizedAccessException("You do not have permission to modify this collection.");
-            }
-
             // AssetExpand.Collections is required so the domain method can locate and remove the entry
             var asset = await assetRepository.GetByIdAsync(request.AssetId, AssetExpand.Collections, cancellationToken)
                 ?? throw new KeyNotFoundException($"Asset {request.AssetId} not found.");
-
-            if (asset.UserId != request.UserId)
-            {
-                throw new UnauthorizedAccessException("You do not have permission to modify this asset.");
-            }
 
             if (!asset.Collections.Any(c => c.Id == request.CollectionId))
             {

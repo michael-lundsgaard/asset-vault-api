@@ -131,9 +131,7 @@ namespace AssetVault.API.Controllers
             Guid assetId,
             CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
-
-            await mediator.Send(new AddAssetToCollectionCommand(userId, id, assetId), cancellationToken);
+            await mediator.Send(new AddAssetToCollectionCommand(id, assetId), cancellationToken);
             return NoContent();
         }
 
@@ -149,9 +147,7 @@ namespace AssetVault.API.Controllers
             Guid assetId,
             CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
-
-            await mediator.Send(new RemoveAssetFromCollectionCommand(userId, id, assetId), cancellationToken);
+            await mediator.Send(new RemoveAssetFromCollectionCommand(id, assetId), cancellationToken);
             return NoContent();
         }
 

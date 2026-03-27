@@ -22,7 +22,7 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     [Fact]
     public async Task Handle_GivenCollectionNotFound_ShouldThrowKeyNotFoundException()
     {
-        var command = new RemoveAssetFromCollectionCommand(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        var command = new RemoveAssetFromCollectionCommand(Guid.NewGuid(), Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns((Collection?)null);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);
@@ -31,23 +31,10 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongCollectionOwner_ShouldThrowUnauthorizedAccessException()
-    {
-        var collection = Collection.Create(Guid.NewGuid(), "Coll");
-        var command = new RemoveAssetFromCollectionCommand(Guid.NewGuid(), collection.Id, Guid.NewGuid());
-        _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
-
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
     public async Task Handle_GivenAssetNotFound_ShouldThrowKeyNotFoundException()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Coll");
-        var command = new RemoveAssetFromCollectionCommand(userId, collection.Id, Guid.NewGuid());
+        var collection = Collection.Create(Guid.NewGuid(), "Coll");
+        var command = new RemoveAssetFromCollectionCommand(collection.Id, Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns((MediaAsset?)null);
 
@@ -60,8 +47,7 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     public async Task Handle_GivenAssetNotInCollection_ShouldReturnWithoutSaving()
     {
         var (asset, collection) = CreateMatchingPair();
-        // asset is NOT in the collection
-        var command = new RemoveAssetFromCollectionCommand(asset.UserId, collection.Id, asset.Id);
+        var command = new RemoveAssetFromCollectionCommand(collection.Id, asset.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
 
@@ -75,7 +61,7 @@ public class RemoveAssetFromCollectionCommandHandlerTests
     {
         var (asset, collection) = CreateMatchingPair();
         asset.AddToCollection(collection);
-        var command = new RemoveAssetFromCollectionCommand(asset.UserId, collection.Id, asset.Id);
+        var command = new RemoveAssetFromCollectionCommand(collection.Id, asset.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _assetRepository.GetByIdAsync(command.AssetId, AssetExpand.Collections, Arg.Any<CancellationToken>()).Returns(asset);
 
