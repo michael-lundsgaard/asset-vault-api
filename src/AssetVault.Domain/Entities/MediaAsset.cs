@@ -74,6 +74,12 @@ namespace AssetVault.Domain.Entities
             if (existing is not null) Collections.Remove(existing);
         }
 
+        public void Rename(string newFileName)
+        {
+            FileName = newFileName;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
         public void SetStoragePath(string path)
         {
             StoragePath = StoragePath.Create(path);

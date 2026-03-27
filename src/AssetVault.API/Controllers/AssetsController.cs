@@ -119,6 +119,21 @@ namespace AssetVault.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Renames an asset. Request body: { "fileName": "new-name.mp4" }
+        /// </summary>
+        [HttpPatch("{id:guid}")]
+        [ProducesResponseType(typeof(AssetResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Rename(
+            Guid id,
+            [FromBody] RenameAssetRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await mediator.Send(new RenameAssetCommand(id, request.FileName), cancellationToken);
+            return Ok(result);
+        }
+
         private static AssetQuery BuildAssetQuery(GetAssetsRequest request, string? expand)
         {
             AssetStatus? status = Enum.TryParse<AssetStatus>(request.Status, ignoreCase: true, out var parsedStatus)

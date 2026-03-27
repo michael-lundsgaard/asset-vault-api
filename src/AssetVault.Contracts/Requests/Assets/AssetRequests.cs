@@ -6,6 +6,8 @@ namespace AssetVault.Contracts.Requests.Assets
         long SizeBytes
     );
 
+    public record RenameAssetRequest(string FileName);
+
     public record GetAssetsRequest
     {
         public int Page { get; init; } = 1;
