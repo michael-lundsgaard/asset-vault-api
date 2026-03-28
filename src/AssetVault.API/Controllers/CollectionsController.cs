@@ -163,9 +163,8 @@ namespace AssetVault.API.Controllers
             [FromBody] InitiateCoverUploadRequest request,
             CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
             var result = await mediator.Send(
-                new InitiateCoverUploadCommand(userId, id, request.ContentType, request.SizeBytes),
+                new InitiateCoverUploadCommand(id, request.ContentType, request.SizeBytes),
                 cancellationToken);
             return Ok(result);
         }
@@ -178,8 +177,7 @@ namespace AssetVault.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ConfirmCoverUpload(Guid id, CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
-            var result = await mediator.Send(new ConfirmCoverUploadCommand(userId, id), cancellationToken);
+            var result = await mediator.Send(new ConfirmCoverUploadCommand(id), cancellationToken);
             return Ok(result);
         }
 
@@ -191,8 +189,7 @@ namespace AssetVault.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCover(Guid id, CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
-            await mediator.Send(new DeleteCollectionCoverCommand(userId, id), cancellationToken);
+            await mediator.Send(new DeleteCollectionCoverCommand(id), cancellationToken);
             return NoContent();
         }
 

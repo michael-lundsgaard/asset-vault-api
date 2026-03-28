@@ -19,11 +19,11 @@ namespace AssetVault.Application.Assets.Mappings
                 asset.Size.ToString(),
                 asset.Status.ToString(),
                 asset.CreatedAt,
-                asset.Tags)
+                asset.Tags,
+                asset.ThumbnailUrl)
             {
-                ThumbnailUrl = asset.ThumbnailUrl,
                 Collections = expand.HasFlag(AssetExpand.Collections)
-                    ? [.. asset.Collections.Select(c => new CollectionSummary(c.Id, c.Name))]
+                    ? [.. asset.Collections.Select(c => new CollectionSummary(c.Id, c.Name, c.CoverImageUrl))]
                     : null
             };
 

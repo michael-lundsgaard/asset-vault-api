@@ -12,11 +12,9 @@ namespace AssetVault.Contracts.Responses.Assets
         string SizeFormatted,
         string Status,
         DateTime CreatedAt,
-        List<string> Tags)
+        List<string> Tags,
+        string? ThumbnailUrl)
     {
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string? ThumbnailUrl { get; init; }
-
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public List<CollectionSummary>? Collections { get; init; }
     }

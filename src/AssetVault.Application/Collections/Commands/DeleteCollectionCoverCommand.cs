@@ -3,7 +3,7 @@ using MediatR;
 
 namespace AssetVault.Application.Collections.Commands
 {
-    public record DeleteCollectionCoverCommand(Guid UserId, Guid CollectionId) : IRequest;
+    public record DeleteCollectionCoverCommand(Guid CollectionId) : IRequest;
 
     public class DeleteCollectionCoverCommandHandler(
         ICollectionRepository collectionRepository,
@@ -14,9 +14,6 @@ namespace AssetVault.Application.Collections.Commands
         {
             var collection = await collectionRepository.GetByIdAsync(request.CollectionId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Collection {request.CollectionId} not found.");
-
-            if (collection.UserId != request.UserId)
-                throw new UnauthorizedAccessException("You do not have permission to modify this collection.");
 
             if (collection.CoverImageUrl is null)
                 return;

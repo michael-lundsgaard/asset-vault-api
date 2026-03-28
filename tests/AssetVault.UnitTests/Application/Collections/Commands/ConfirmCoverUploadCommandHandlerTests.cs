@@ -15,7 +15,7 @@ public class ConfirmCoverUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenCollectionNotFound_ShouldThrowKeyNotFoundException()
     {
-        var command = new ConfirmCoverUploadCommand(Guid.NewGuid(), Guid.NewGuid());
+        var command = new ConfirmCoverUploadCommand(Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns((Collection?)null);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);
@@ -24,23 +24,10 @@ public class ConfirmCoverUploadCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongOwner_ShouldThrowUnauthorizedAccessException()
-    {
-        var collection = Collection.Create(Guid.NewGuid(), "Nature");
-        var command = new ConfirmCoverUploadCommand(Guid.NewGuid(), collection.Id);
-        _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
-
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
     public async Task Handle_GivenValidCommand_ShouldSetCoverImageUrl()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
-        var command = new ConfirmCoverUploadCommand(userId, collection.Id);
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
+        var command = new ConfirmCoverUploadCommand(collection.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _storageService.GetPublicUrl(Arg.Any<string>()).Returns(x => $"https://cdn.example.com/{x.Arg<string>()}");
 
@@ -52,9 +39,8 @@ public class ConfirmCoverUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldRaiseCollectionCoverSetEvent()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
-        var command = new ConfirmCoverUploadCommand(userId, collection.Id);
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
+        var command = new ConfirmCoverUploadCommand(collection.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _storageService.GetPublicUrl(Arg.Any<string>()).Returns("https://cdn.example.com/covers/x/cover");
 
@@ -67,9 +53,8 @@ public class ConfirmCoverUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldSaveChangesAndReturnResponseWithCoverImageUrl()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
-        var command = new ConfirmCoverUploadCommand(userId, collection.Id);
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
+        var command = new ConfirmCoverUploadCommand(collection.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _storageService.GetPublicUrl(Arg.Any<string>()).Returns("https://cdn.example.com/covers/x/cover");
 

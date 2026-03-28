@@ -5,7 +5,6 @@ using MediatR;
 namespace AssetVault.Application.Collections.Commands
 {
     public record InitiateCoverUploadCommand(
-        Guid UserId,
         Guid CollectionId,
         string ContentType,
         long SizeBytes
@@ -41,9 +40,6 @@ namespace AssetVault.Application.Collections.Commands
         {
             var collection = await collectionRepository.GetByIdAsync(request.CollectionId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Collection {request.CollectionId} not found.");
-
-            if (collection.UserId != request.UserId)
-                throw new UnauthorizedAccessException("You do not have permission to modify this collection.");
 
             var presigned = await storageService.GenerateCoverImageUploadUrlAsync(
                 request.CollectionId,

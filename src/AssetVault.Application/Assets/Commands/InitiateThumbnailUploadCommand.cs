@@ -7,7 +7,6 @@ using MediatR;
 namespace AssetVault.Application.Assets.Commands
 {
     public record InitiateThumbnailUploadCommand(
-        Guid UserId,
         Guid AssetId,
         string ContentType,
         long SizeBytes
@@ -43,9 +42,6 @@ namespace AssetVault.Application.Assets.Commands
         {
             var asset = await assetRepository.GetByIdAsync(request.AssetId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Asset {request.AssetId} not found.");
-
-            if (asset.UserId != request.UserId)
-                throw new UnauthorizedAccessException("You do not have permission to modify this asset.");
 
             var presigned = await storageService.GenerateThumbnailUploadUrlAsync(
                 request.AssetId,

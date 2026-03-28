@@ -5,7 +5,7 @@ using MediatR;
 
 namespace AssetVault.Application.Assets.Commands
 {
-    public record ConfirmThumbnailUploadCommand(Guid UserId, Guid AssetId) : IRequest<AssetResponse>;
+    public record ConfirmThumbnailUploadCommand(Guid AssetId) : IRequest<AssetResponse>;
 
     public class ConfirmThumbnailUploadCommandHandler(
         IAssetRepository assetRepository,
@@ -18,9 +18,6 @@ namespace AssetVault.Application.Assets.Commands
         {
             var asset = await assetRepository.GetByIdAsync(request.AssetId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Asset {request.AssetId} not found.");
-
-            if (asset.UserId != request.UserId)
-                throw new UnauthorizedAccessException("You do not have permission to modify this asset.");
 
             var thumbnailPath = $"thumbnails/{request.AssetId}/thumbnail";
             var thumbnailUrl = storageService.GetPublicUrl(thumbnailPath);

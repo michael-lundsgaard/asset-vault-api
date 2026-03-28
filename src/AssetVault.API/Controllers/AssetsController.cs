@@ -146,9 +146,8 @@ namespace AssetVault.API.Controllers
             [FromBody] InitiateThumbnailUploadRequest request,
             CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
             var result = await mediator.Send(
-                new InitiateThumbnailUploadCommand(userId, id, request.ContentType, request.SizeBytes),
+                new InitiateThumbnailUploadCommand(id, request.ContentType, request.SizeBytes),
                 cancellationToken);
             return Ok(result);
         }
@@ -161,8 +160,7 @@ namespace AssetVault.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ConfirmThumbnailUpload(Guid id, CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
-            var result = await mediator.Send(new ConfirmThumbnailUploadCommand(userId, id), cancellationToken);
+            var result = await mediator.Send(new ConfirmThumbnailUploadCommand(id), cancellationToken);
             return Ok(result);
         }
 
@@ -174,8 +172,7 @@ namespace AssetVault.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteThumbnail(Guid id, CancellationToken cancellationToken)
         {
-            var userId = HttpContext.GetRequiredUserProfile().Id;
-            await mediator.Send(new DeleteAssetThumbnailCommand(userId, id), cancellationToken);
+            await mediator.Send(new DeleteAssetThumbnailCommand(id), cancellationToken);
             return NoContent();
         }
 

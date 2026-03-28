@@ -15,7 +15,7 @@ public class DeleteCollectionCoverCommandHandlerTests
     [Fact]
     public async Task Handle_GivenCollectionNotFound_ShouldThrowKeyNotFoundException()
     {
-        var command = new DeleteCollectionCoverCommand(Guid.NewGuid(), Guid.NewGuid());
+        var command = new DeleteCollectionCoverCommand(Guid.NewGuid());
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns((Collection?)null);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);
@@ -24,23 +24,10 @@ public class DeleteCollectionCoverCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongOwner_ShouldThrowUnauthorizedAccessException()
-    {
-        var collection = Collection.Create(Guid.NewGuid(), "Nature");
-        var command = new DeleteCollectionCoverCommand(Guid.NewGuid(), collection.Id);
-        _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
-
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
     public async Task Handle_GivenCollectionWithNoCover_ShouldDoNothing()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
-        var command = new DeleteCollectionCoverCommand(userId, collection.Id);
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
+        var command = new DeleteCollectionCoverCommand(collection.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
         await _sut.Handle(command, CancellationToken.None);
@@ -52,10 +39,9 @@ public class DeleteCollectionCoverCommandHandlerTests
     [Fact]
     public async Task Handle_GivenCollectionWithCover_ShouldDeleteFromStorageAndClearUrl()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
         collection.SetCoverImageUrl($"https://cdn.example.com/covers/{collection.Id}/cover");
-        var command = new DeleteCollectionCoverCommand(userId, collection.Id);
+        var command = new DeleteCollectionCoverCommand(collection.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
         await _sut.Handle(command, CancellationToken.None);
@@ -68,11 +54,10 @@ public class DeleteCollectionCoverCommandHandlerTests
     [Fact]
     public async Task Handle_GivenCollectionWithCover_ShouldRaiseCollectionCoverRemovedEvent()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
         collection.SetCoverImageUrl($"https://cdn.example.com/covers/{collection.Id}/cover");
         collection.ClearDomainEvents();
-        var command = new DeleteCollectionCoverCommand(userId, collection.Id);
+        var command = new DeleteCollectionCoverCommand(collection.Id);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
 
         await _sut.Handle(command, CancellationToken.None);

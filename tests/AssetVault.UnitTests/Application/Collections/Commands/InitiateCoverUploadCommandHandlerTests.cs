@@ -14,7 +14,7 @@ public class InitiateCoverUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenCollectionNotFound_ShouldThrowKeyNotFoundException()
     {
-        var command = new InitiateCoverUploadCommand(Guid.NewGuid(), Guid.NewGuid(), "image/jpeg", 1024);
+        var command = new InitiateCoverUploadCommand(Guid.NewGuid(), "image/jpeg", 1024);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns((Collection?)null);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);
@@ -23,24 +23,11 @@ public class InitiateCoverUploadCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongOwner_ShouldThrowUnauthorizedAccessException()
-    {
-        var collection = Collection.Create(Guid.NewGuid(), "Nature");
-        var command = new InitiateCoverUploadCommand(Guid.NewGuid(), collection.Id, "image/jpeg", 1024);
-        _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
-
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
     public async Task Handle_GivenValidCommand_ShouldReturnPresignedUrl()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
         var expiry = DateTime.UtcNow.AddMinutes(15);
-        var command = new InitiateCoverUploadCommand(userId, collection.Id, "image/png", 2048);
+        var command = new InitiateCoverUploadCommand(collection.Id, "image/png", 2048);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _storageService
             .GenerateCoverImageUploadUrlAsync(command.CollectionId, command.ContentType, Arg.Any<CancellationToken>())
@@ -55,9 +42,8 @@ public class InitiateCoverUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldNotWriteToDatabase()
     {
-        var userId = Guid.NewGuid();
-        var collection = Collection.Create(userId, "Nature");
-        var command = new InitiateCoverUploadCommand(userId, collection.Id, "image/png", 2048);
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
+        var command = new InitiateCoverUploadCommand(collection.Id, "image/png", 2048);
         _collectionRepository.GetByIdAsync(command.CollectionId, cancellationToken: Arg.Any<CancellationToken>()).Returns(collection);
         _storageService
             .GenerateCoverImageUploadUrlAsync(Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<CancellationToken>())

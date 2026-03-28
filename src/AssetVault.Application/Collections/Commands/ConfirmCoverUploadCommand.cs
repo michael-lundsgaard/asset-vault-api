@@ -5,7 +5,7 @@ using MediatR;
 
 namespace AssetVault.Application.Collections.Commands
 {
-    public record ConfirmCoverUploadCommand(Guid UserId, Guid CollectionId) : IRequest<CollectionResponse>;
+    public record ConfirmCoverUploadCommand(Guid CollectionId) : IRequest<CollectionResponse>;
 
     public class ConfirmCoverUploadCommandHandler(
         ICollectionRepository collectionRepository,
@@ -18,9 +18,6 @@ namespace AssetVault.Application.Collections.Commands
         {
             var collection = await collectionRepository.GetByIdAsync(request.CollectionId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Collection {request.CollectionId} not found.");
-
-            if (collection.UserId != request.UserId)
-                throw new UnauthorizedAccessException("You do not have permission to modify this collection.");
 
             var coverPath = $"covers/{request.CollectionId}/cover";
             var coverImageUrl = storageService.GetPublicUrl(coverPath);

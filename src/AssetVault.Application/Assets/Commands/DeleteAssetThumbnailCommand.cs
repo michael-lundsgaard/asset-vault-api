@@ -3,7 +3,7 @@ using MediatR;
 
 namespace AssetVault.Application.Assets.Commands
 {
-    public record DeleteAssetThumbnailCommand(Guid UserId, Guid AssetId) : IRequest;
+    public record DeleteAssetThumbnailCommand(Guid AssetId) : IRequest;
 
     public class DeleteAssetThumbnailCommandHandler(
         IAssetRepository assetRepository,
@@ -14,9 +14,6 @@ namespace AssetVault.Application.Assets.Commands
         {
             var asset = await assetRepository.GetByIdAsync(request.AssetId, cancellationToken: cancellationToken)
                 ?? throw new KeyNotFoundException($"Asset {request.AssetId} not found.");
-
-            if (asset.UserId != request.UserId)
-                throw new UnauthorizedAccessException("You do not have permission to modify this asset.");
 
             if (asset.ThumbnailUrl is null)
                 return;

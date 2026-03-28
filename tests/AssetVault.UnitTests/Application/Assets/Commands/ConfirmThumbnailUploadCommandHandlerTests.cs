@@ -15,7 +15,7 @@ public class ConfirmThumbnailUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenAssetNotFound_ShouldThrowKeyNotFoundException()
     {
-        var command = new ConfirmThumbnailUploadCommand(Guid.NewGuid(), Guid.NewGuid());
+        var command = new ConfirmThumbnailUploadCommand(Guid.NewGuid());
         _assetRepository.GetByIdAsync(command.AssetId, cancellationToken: Arg.Any<CancellationToken>()).Returns((MediaAsset?)null);
 
         var act = async () => await _sut.Handle(command, CancellationToken.None);
@@ -24,23 +24,10 @@ public class ConfirmThumbnailUploadCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_GivenWrongOwner_ShouldThrowUnauthorizedAccessException()
-    {
-        var asset = MediaAsset.Create(Guid.NewGuid(), "video.mp4", "video/mp4", 1024);
-        var command = new ConfirmThumbnailUploadCommand(Guid.NewGuid(), asset.Id);
-        _assetRepository.GetByIdAsync(command.AssetId, cancellationToken: Arg.Any<CancellationToken>()).Returns(asset);
-
-        var act = async () => await _sut.Handle(command, CancellationToken.None);
-
-        await act.Should().ThrowAsync<UnauthorizedAccessException>();
-    }
-
-    [Fact]
     public async Task Handle_GivenValidCommand_ShouldSetThumbnailUrlOnAsset()
     {
-        var userId = Guid.NewGuid();
-        var asset = MediaAsset.Create(userId, "video.mp4", "video/mp4", 1024);
-        var command = new ConfirmThumbnailUploadCommand(userId, asset.Id);
+        var asset = MediaAsset.Create(Guid.NewGuid(), "video.mp4", "video/mp4", 1024);
+        var command = new ConfirmThumbnailUploadCommand(asset.Id);
         _assetRepository.GetByIdAsync(command.AssetId, cancellationToken: Arg.Any<CancellationToken>()).Returns(asset);
         _storageService.GetPublicUrl(Arg.Any<string>()).Returns(x => $"https://cdn.example.com/{x.Arg<string>()}");
 
@@ -52,10 +39,9 @@ public class ConfirmThumbnailUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldRaiseAssetThumbnailSetEvent()
     {
-        var userId = Guid.NewGuid();
-        var asset = MediaAsset.Create(userId, "video.mp4", "video/mp4", 1024);
+        var asset = MediaAsset.Create(Guid.NewGuid(), "video.mp4", "video/mp4", 1024);
         asset.ClearDomainEvents();
-        var command = new ConfirmThumbnailUploadCommand(userId, asset.Id);
+        var command = new ConfirmThumbnailUploadCommand(asset.Id);
         _assetRepository.GetByIdAsync(command.AssetId, cancellationToken: Arg.Any<CancellationToken>()).Returns(asset);
         _storageService.GetPublicUrl(Arg.Any<string>()).Returns("https://cdn.example.com/thumbnails/x/thumbnail");
 
@@ -68,9 +54,8 @@ public class ConfirmThumbnailUploadCommandHandlerTests
     [Fact]
     public async Task Handle_GivenValidCommand_ShouldSaveChangesAndReturnResponseWithThumbnailUrl()
     {
-        var userId = Guid.NewGuid();
-        var asset = MediaAsset.Create(userId, "video.mp4", "video/mp4", 1024);
-        var command = new ConfirmThumbnailUploadCommand(userId, asset.Id);
+        var asset = MediaAsset.Create(Guid.NewGuid(), "video.mp4", "video/mp4", 1024);
+        var command = new ConfirmThumbnailUploadCommand(asset.Id);
         _assetRepository.GetByIdAsync(command.AssetId, cancellationToken: Arg.Any<CancellationToken>()).Returns(asset);
         _storageService.GetPublicUrl(Arg.Any<string>()).Returns("https://cdn.example.com/thumbnails/x/thumbnail");
 
