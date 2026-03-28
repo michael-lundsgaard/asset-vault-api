@@ -15,6 +15,20 @@ public class FakeStorageService : IStorageService
             $"uploads/{assetId}/{fileName}",
             DateTime.UtcNow.AddMinutes(15)));
 
+    public Task<PresignedUploadResult> GenerateThumbnailUploadUrlAsync(
+        Guid assetId, string contentType, CancellationToken cancellationToken = default) =>
+        Task.FromResult(new PresignedUploadResult(
+            $"https://fake-storage.test/thumbnails/{assetId}/thumbnail",
+            $"thumbnails/{assetId}/thumbnail",
+            DateTime.UtcNow.AddMinutes(15)));
+
+    public Task<PresignedUploadResult> GenerateCoverImageUploadUrlAsync(
+        Guid collectionId, string contentType, CancellationToken cancellationToken = default) =>
+        Task.FromResult(new PresignedUploadResult(
+            $"https://fake-storage.test/covers/{collectionId}/cover",
+            $"covers/{collectionId}/cover",
+            DateTime.UtcNow.AddMinutes(15)));
+
     public Task<PresignedDownloadResult> GenerateDownloadUrlAsync(
         string storagePath, CancellationToken cancellationToken = default) =>
         Task.FromResult(new PresignedDownloadResult(
@@ -23,4 +37,10 @@ public class FakeStorageService : IStorageService
 
     public Task DeleteAsync(string storagePath, CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
+
+    public Task DeletePublicAsync(string storagePath, CancellationToken cancellationToken = default) =>
+        Task.CompletedTask;
+
+    public string GetPublicUrl(string storagePath) =>
+        $"https://fake-storage.test/public/{storagePath}";
 }

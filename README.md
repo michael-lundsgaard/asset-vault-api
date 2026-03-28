@@ -45,12 +45,19 @@ MinIO console available at `http://localhost:9001` (minioadmin / minioadmin).
 cd src/AssetVault.API
 
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "YOUR_SUPABASE_CONNECTION_STRING"
-dotnet user-secrets set "Storage:S3:BucketName"      "assetvault"
+
+# Private bucket — main asset uploads
+dotnet user-secrets set "Storage:S3:BucketName"      "asset-vault"
 dotnet user-secrets set "Storage:S3:AccountId"       "local"
 dotnet user-secrets set "Storage:S3:AccessKeyId"     "minioadmin"
 dotnet user-secrets set "Storage:S3:SecretAccessKey" "minioadmin"
 dotnet user-secrets set "Storage:S3:ServiceUrl"      "http://localhost:9000"
 dotnet user-secrets set "Storage:S3:UseHttp"         "true"
+
+# Public bucket — thumbnails and cover images (create this bucket in MinIO with public access policy)
+dotnet user-secrets set "Storage:S3:PublicBucketName"  "asset-vault-public"
+dotnet user-secrets set "Storage:S3:PublicServiceUrl"  "http://localhost:9000"
+dotnet user-secrets set "Storage:S3:PublicBaseUrl"     "http://localhost:9000/asset-vault-public"
 ```
 
 ### 3. Run migrations
@@ -112,13 +119,26 @@ PATCH  /api/assets/{id}/confirm                  → Confirm upload complete
 
 The storage service is S3-compatible — swapping from local MinIO to production requires only config changes, zero code changes.
 
-| Setting           | Local (MinIO)           | Production (Cloudflare R2) |
-| ----------------- | ----------------------- | -------------------------- |
-| `ServiceUrl`      | `http://localhost:9000` | _(leave empty)_            |
-| `AccountId`       | `local`                 | Your Cloudflare Account ID |
-| `UseHttp`         | `true`                  | `false`                    |
-| `AccessKeyId`     | `minioadmin`            | R2 Access Key              |
-| `SecretAccessKey` | `minioadmin`            | R2 Secret Key              |
+**Private bucket** (`BucketName`) — main asset files, accessed via presigned URLs only.
+
+| Setting           | Local (MinIO)           | Production (Cloudflare R2)                     |
+| ----------------- | ----------------------- | ---------------------------------------------- |
+| `BucketName`      | `asset-vault`           | Your private R2 bucket name                    |
+| `ServiceUrl`      | `http://localhost:9000` | `https://<accountId>.r2.cloudflarestorage.com` |
+| `AccountId`       | `local`                 | Your Cloudflare Account ID                     |
+| `UseHttp`         | `true`                  | `false`                                        |
+| `AccessKeyId`     | `minioadmin`            | R2 API Token — Access Key ID                   |
+| `SecretAccessKey` | `minioadmin`            | R2 API Token — Secret Access Key               |
+
+**Public bucket** (`PublicBucketName`) — thumbnails and cover images, served without signing.
+In production: use Cloudflare R2 **Public Development URL** (or a custom domain) — no WAF/custom domain required for dev.
+In MinIO: create the bucket and set its access policy to **public read**.
+
+| Setting            | Local (MinIO)                              | Production (Cloudflare R2)                     |
+| ------------------ | ------------------------------------------ | ---------------------------------------------- |
+| `PublicBucketName` | `asset-vault-public`                       | Your public R2 bucket name                     |
+| `PublicServiceUrl` | `http://localhost:9000`                    | `https://<accountId>.r2.cloudflarestorage.com` |
+| `PublicBaseUrl`    | `http://localhost:9000/asset-vault-public` | `https://pub-<token>.r2.dev` (Public Dev URL)  |
 
 ---
 

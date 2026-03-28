@@ -14,6 +14,7 @@ namespace AssetVault.Domain.Entities
         public StoragePath? StoragePath { get; private set; }
         public AssetStatus Status { get; private set; }
         public List<string> Tags { get; private set; } = [];
+        public string? ThumbnailUrl { get; private set; }
 
         // Navigation
         public UserProfile Owner { get; private set; } = default!;
@@ -84,6 +85,20 @@ namespace AssetVault.Domain.Entities
         {
             StoragePath = StoragePath.Create(path);
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void SetThumbnailUrl(string url)
+        {
+            ThumbnailUrl = url;
+            UpdatedAt = DateTime.UtcNow;
+            AddDomainEvent(new AssetThumbnailSetEvent(Id));
+        }
+
+        public void RemoveThumbnail()
+        {
+            ThumbnailUrl = null;
+            UpdatedAt = DateTime.UtcNow;
+            AddDomainEvent(new AssetThumbnailRemovedEvent(Id));
         }
     }
 }

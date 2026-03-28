@@ -95,10 +95,16 @@ public static AssetResponse ToResponse(this MediaAsset asset, AssetExpand expand
 docker compose up -d           # Start MinIO (console: http://localhost:9001, minioadmin/minioadmin)
 cd src/AssetVault.API
 dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<supabase-connection-string>"
-dotnet user-secrets set "Storage:S3:ServiceUrl" "http://localhost:9000"
-dotnet user-secrets set "Storage:S3:AccessKeyId" "minioadmin"
-dotnet user-secrets set "Storage:S3:SecretAccessKey" "minioadmin"
-dotnet user-secrets set "Storage:S3:UseHttp" "true"
+# Private bucket (main assets)
+dotnet user-secrets set "Storage:S3:BucketName"        "asset-vault"
+dotnet user-secrets set "Storage:S3:ServiceUrl"        "http://localhost:9000"
+dotnet user-secrets set "Storage:S3:AccessKeyId"       "minioadmin"
+dotnet user-secrets set "Storage:S3:SecretAccessKey"   "minioadmin"
+dotnet user-secrets set "Storage:S3:UseHttp"           "true"
+# Public bucket (thumbnails + cover images — create in MinIO with public read policy)
+dotnet user-secrets set "Storage:S3:PublicBucketName"  "asset-vault-public"
+dotnet user-secrets set "Storage:S3:PublicServiceUrl"  "http://localhost:9000"
+dotnet user-secrets set "Storage:S3:PublicBaseUrl"     "http://localhost:9000/asset-vault-public"
 # Migrations
 dotnet ef database update --project src/AssetVault.Infrastructure --startup-project src/AssetVault.API
 # Add a new migration

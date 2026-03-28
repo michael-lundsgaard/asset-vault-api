@@ -7,6 +7,7 @@ namespace AssetVault.Contracts.Requests.Assets
     );
 
     public record RenameAssetRequest(string FileName);
+    public record InitiateThumbnailUploadRequest(string ContentType, long SizeBytes);
 
     public record GetAssetsRequest
     {

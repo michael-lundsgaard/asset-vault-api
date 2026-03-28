@@ -21,6 +21,7 @@ namespace AssetVault.Application.Assets.Mappings
                 asset.CreatedAt,
                 asset.Tags)
             {
+                ThumbnailUrl = asset.ThumbnailUrl,
                 Collections = expand.HasFlag(AssetExpand.Collections)
                     ? [.. asset.Collections.Select(c => new CollectionSummary(c.Id, c.Name))]
                     : null

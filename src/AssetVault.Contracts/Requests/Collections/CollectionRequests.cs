@@ -10,6 +10,8 @@ namespace AssetVault.Contracts.Requests.Collections
         string? Description = null
     );
 
+    public record InitiateCoverUploadRequest(string ContentType, long SizeBytes);
+
     public record GetCollectionsRequest
     {
         public int Page { get; init; } = 1;

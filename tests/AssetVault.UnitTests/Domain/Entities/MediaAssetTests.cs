@@ -142,4 +142,31 @@ public class MediaAssetTests
         asset.StoragePath.Should().NotBeNull();
         asset.StoragePath!.Value.Should().Be("uploads/abc/photo.jpg");
     }
+
+    [Fact]
+    public void SetThumbnailUrl_GivenValidUrl_ShouldSetThumbnailUrlAndRaiseEvent()
+    {
+        var asset = CreateAsset();
+        asset.ClearDomainEvents();
+
+        asset.SetThumbnailUrl("https://cdn.example.com/thumbnails/abc/thumbnail");
+
+        asset.ThumbnailUrl.Should().Be("https://cdn.example.com/thumbnails/abc/thumbnail");
+        asset.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<AssetThumbnailSetEvent>();
+    }
+
+    [Fact]
+    public void RemoveThumbnail_GivenExistingThumbnail_ShouldNullUrlAndRaiseEvent()
+    {
+        var asset = CreateAsset();
+        asset.SetThumbnailUrl("https://cdn.example.com/thumbnails/abc/thumbnail");
+        asset.ClearDomainEvents();
+
+        asset.RemoveThumbnail();
+
+        asset.ThumbnailUrl.Should().BeNull();
+        asset.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<AssetThumbnailRemovedEvent>();
+    }
 }

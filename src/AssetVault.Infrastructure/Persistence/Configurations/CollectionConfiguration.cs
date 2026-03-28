@@ -13,6 +13,8 @@ namespace AssetVault.Infrastructure.Persistence.Configurations
             builder.Property(c => c.Name).HasMaxLength(256).IsRequired();
             builder.Property(c => c.Description).HasMaxLength(1024);
 
+            builder.Property(c => c.CoverImageUrl).HasMaxLength(2048);
+
             builder.HasOne(a => a.Owner)
                 .WithMany()
                 .HasForeignKey(a => a.UserId)

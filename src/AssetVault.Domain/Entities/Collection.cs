@@ -1,4 +1,5 @@
 using AssetVault.Domain.Common;
+using AssetVault.Domain.Events;
 
 namespace AssetVault.Domain.Entities
 {
@@ -8,6 +9,7 @@ namespace AssetVault.Domain.Entities
         public string Name { get; private set; } = default!;
         public string? Description { get; private set; }
         public ICollection<MediaAsset> Assets { get; private set; } = [];
+        public string? CoverImageUrl { get; private set; }
 
         // Navigation
         public UserProfile Owner { get; private set; } = default!;
@@ -22,6 +24,20 @@ namespace AssetVault.Domain.Entities
             Name = name;
             Description = description;
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void SetCoverImageUrl(string url)
+        {
+            CoverImageUrl = url;
+            UpdatedAt = DateTime.UtcNow;
+            AddDomainEvent(new CollectionCoverSetEvent(Id));
+        }
+
+        public void RemoveCoverImage()
+        {
+            CoverImageUrl = null;
+            UpdatedAt = DateTime.UtcNow;
+            AddDomainEvent(new CollectionCoverRemovedEvent(Id));
         }
     }
 }

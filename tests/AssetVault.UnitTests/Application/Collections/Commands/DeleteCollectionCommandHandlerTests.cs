@@ -5,10 +5,11 @@ namespace AssetVault.UnitTests.Application.Collections.Commands;
 public class DeleteCollectionCommandHandlerTests
 {
     private readonly ICollectionRepository _collectionRepository = Substitute.For<ICollectionRepository>();
+    private readonly IStorageService _storageService = Substitute.For<IStorageService>();
     private readonly DeleteCollectionCommandHandler _sut;
 
     public DeleteCollectionCommandHandlerTests() =>
-        _sut = new DeleteCollectionCommandHandler(_collectionRepository);
+        _sut = new DeleteCollectionCommandHandler(_collectionRepository, _storageService);
 
     [Fact]
     public async Task Handle_GivenCollectionNotFound_ShouldThrowKeyNotFoundException()

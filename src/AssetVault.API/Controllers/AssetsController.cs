@@ -134,6 +134,51 @@ namespace AssetVault.API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Initiates a thumbnail upload — returns a pre-signed S3 URL.
+        /// Client uploads directly to S3, then calls PATCH /assets/{id}/thumbnail/confirm.
+        /// </summary>
+        [HttpPost("{id:guid}/thumbnail/upload")]
+        [ProducesResponseType(typeof(InitiateThumbnailUploadResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> InitiateThumbnailUpload(
+            Guid id,
+            [FromBody] InitiateThumbnailUploadRequest request,
+            CancellationToken cancellationToken)
+        {
+            var userId = HttpContext.GetRequiredUserProfile().Id;
+            var result = await mediator.Send(
+                new InitiateThumbnailUploadCommand(userId, id, request.ContentType, request.SizeBytes),
+                cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Client calls this after completing the thumbnail S3 upload.
+        /// </summary>
+        [HttpPatch("{id:guid}/thumbnail/confirm")]
+        [ProducesResponseType(typeof(AssetResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ConfirmThumbnailUpload(Guid id, CancellationToken cancellationToken)
+        {
+            var userId = HttpContext.GetRequiredUserProfile().Id;
+            var result = await mediator.Send(new ConfirmThumbnailUploadCommand(userId, id), cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Deletes the thumbnail for an asset.
+        /// </summary>
+        [HttpDelete("{id:guid}/thumbnail")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteThumbnail(Guid id, CancellationToken cancellationToken)
+        {
+            var userId = HttpContext.GetRequiredUserProfile().Id;
+            await mediator.Send(new DeleteAssetThumbnailCommand(userId, id), cancellationToken);
+            return NoContent();
+        }
+
         private static AssetQuery BuildAssetQuery(GetAssetsRequest request, string? expand)
         {
             AssetStatus? status = Enum.TryParse<AssetStatus>(request.Status, ignoreCase: true, out var parsedStatus)

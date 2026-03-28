@@ -5,8 +5,10 @@ namespace AssetVault.Application.Collections.Commands
 {
     public record DeleteCollectionCommand(Guid UserId, Guid Id) : IRequest;
 
-    public class DeleteCollectionCommandHandler(ICollectionRepository collectionRepository)
-        : IRequestHandler<DeleteCollectionCommand>
+    public class DeleteCollectionCommandHandler(
+        ICollectionRepository collectionRepository,
+        IStorageService storageService
+    ) : IRequestHandler<DeleteCollectionCommand>
     {
         public async Task Handle(DeleteCollectionCommand request, CancellationToken cancellationToken)
         {
@@ -17,6 +19,9 @@ namespace AssetVault.Application.Collections.Commands
             {
                 throw new UnauthorizedAccessException("You do not have permission to delete this collection.");
             }
+
+            if (collection.CoverImageUrl is not null)
+                await storageService.DeletePublicAsync($"covers/{request.Id}/cover", cancellationToken);
 
             await collectionRepository.DeleteAsync(collection, cancellationToken);
             await collectionRepository.SaveChangesAsync(cancellationToken);

@@ -17,6 +17,7 @@ namespace AssetVault.Application.Collections.Mappings
                 collection.Description,
                 collection.CreatedAt)
             {
+                CoverImageUrl = collection.CoverImageUrl,
                 Assets = expand.HasFlag(CollectionExpand.Assets)
                     ? [.. collection.Assets.Select(a => a.ToResponse(AssetExpand.None))]
                     : null

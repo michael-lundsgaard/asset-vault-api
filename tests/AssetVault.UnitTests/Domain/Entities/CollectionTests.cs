@@ -44,4 +44,30 @@ public class CollectionTests
 
         collection.Description.Should().BeNull();
     }
+
+    [Fact]
+    public void SetCoverImageUrl_GivenValidUrl_ShouldSetCoverImageUrlAndRaiseEvent()
+    {
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
+
+        collection.SetCoverImageUrl("https://cdn.example.com/covers/abc/cover");
+
+        collection.CoverImageUrl.Should().Be("https://cdn.example.com/covers/abc/cover");
+        collection.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<AssetVault.Domain.Events.CollectionCoverSetEvent>();
+    }
+
+    [Fact]
+    public void RemoveCoverImage_GivenExistingCover_ShouldNullUrlAndRaiseEvent()
+    {
+        var collection = Collection.Create(Guid.NewGuid(), "Nature");
+        collection.SetCoverImageUrl("https://cdn.example.com/covers/abc/cover");
+        collection.ClearDomainEvents();
+
+        collection.RemoveCoverImage();
+
+        collection.CoverImageUrl.Should().BeNull();
+        collection.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<AssetVault.Domain.Events.CollectionCoverRemovedEvent>();
+    }
 }

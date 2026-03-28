@@ -151,6 +151,51 @@ namespace AssetVault.API.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Initiates a cover image upload — returns a pre-signed S3 URL.
+        /// Client uploads directly to S3, then calls PATCH /collections/{id}/cover/confirm.
+        /// </summary>
+        [HttpPost("{id:guid}/cover/upload")]
+        [ProducesResponseType(typeof(InitiateCoverUploadResult), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> InitiateCoverUpload(
+            Guid id,
+            [FromBody] InitiateCoverUploadRequest request,
+            CancellationToken cancellationToken)
+        {
+            var userId = HttpContext.GetRequiredUserProfile().Id;
+            var result = await mediator.Send(
+                new InitiateCoverUploadCommand(userId, id, request.ContentType, request.SizeBytes),
+                cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Client calls this after completing the cover image S3 upload.
+        /// </summary>
+        [HttpPatch("{id:guid}/cover/confirm")]
+        [ProducesResponseType(typeof(CollectionResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ConfirmCoverUpload(Guid id, CancellationToken cancellationToken)
+        {
+            var userId = HttpContext.GetRequiredUserProfile().Id;
+            var result = await mediator.Send(new ConfirmCoverUploadCommand(userId, id), cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Deletes the cover image for a collection.
+        /// </summary>
+        [HttpDelete("{id:guid}/cover")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteCover(Guid id, CancellationToken cancellationToken)
+        {
+            var userId = HttpContext.GetRequiredUserProfile().Id;
+            await mediator.Send(new DeleteCollectionCoverCommand(userId, id), cancellationToken);
+            return NoContent();
+        }
+
         private static CollectionQuery BuildCollectionQuery(GetCollectionsRequest request, string? expand)
         {
             CollectionSortBy sortBy = Enum.TryParse<CollectionSortBy>(request.SortBy, ignoreCase: true, out var parsedSortBy)

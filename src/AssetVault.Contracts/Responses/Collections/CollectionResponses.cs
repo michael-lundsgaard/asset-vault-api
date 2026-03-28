@@ -14,7 +14,10 @@ namespace AssetVault.Contracts.Responses.Collections
         DateTime CreatedAt)
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<AssetResponse>? Assets { get; init; } // omitted unless ?expand=assets
+        public string? CoverImageUrl { get; init; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<AssetResponse>? Assets { get; init; }
     }
 
 }

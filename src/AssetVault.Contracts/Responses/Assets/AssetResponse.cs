@@ -15,7 +15,10 @@ namespace AssetVault.Contracts.Responses.Assets
         List<string> Tags)
     {
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public List<CollectionSummary>? Collections { get; init; } // omitted unless ?expand=collections
+        public string? ThumbnailUrl { get; init; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public List<CollectionSummary>? Collections { get; init; }
     }
 
     public record PresignedUploadResponse(

@@ -26,6 +26,8 @@ namespace AssetVault.Infrastructure.Persistence.Configurations
                 path.Property(p => p.Value).HasColumnName("StoragePath").HasMaxLength(1024);
             });
 
+            builder.Property(a => a.ThumbnailUrl).HasMaxLength(2048);
+
             builder.Property(a => a.Tags)
                 .HasColumnType("text[]")
                 .IsRequired();
